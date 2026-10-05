@@ -1,9 +1,0 @@
-Contains information licensed under the Open Government Licence – Toronto.
-https://open.toronto.ca/open-data-license/
-2025 orthophotography from the City Web Map Services catalogue:
-https://open.toronto.ca/dataset/web-map-services/
-https://gis.toronto.ca/arcgis/rest/services/basemap/cot_ortho_2025_color_8cm/MapServer
-Exported JPEG bytes are unchanged. In-game sampling is approximately 0.23 m/pixel;
-the service name describes its source, not the runtime output resolution.
-City building, parcel, address and ground-surface layers are attributed in /sources.html.
-© OpenStreetMap contributors, ODbL: https://www.openstreetmap.org/copyright
