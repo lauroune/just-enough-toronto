@@ -6,13 +6,13 @@ for(const viewport of [{width:1440,height:960},{width:390,height:844},{width:320
  test(`river typography and controls fit ${viewport.width}×${viewport.height}`,async({page})=>{
   test.setTimeout(90000);await page.setViewportSize(viewport);
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('/?debug');await expect(page.locator('dialog[open] #dialog-title')).toHaveText('Just Enough');
+  await page.goto(`${process.env.GAME_PATH||'/'}?debug`);await expect(page.locator('dialog[open] #dialog-title')).toHaveText('Just Enough');
   await page.evaluate(()=>document.fonts.ready);
   await expect(page.locator('.game-subtitle')).toHaveText('A Game About Context Engineering.');
   await expect(page.locator('.overview-copy')).toContainText('Compression keeps what is useful for the task.');
   await expect(page.getByRole('button',{name:'Start',exact:true})).toBeVisible();
   await expect(page.locator('.bridge-epigraph')).toHaveCount(0);
-  expect(await page.evaluate(()=>document.fonts.check('24px "Instrument Serif"'))).toBe(true);
+  expect(await page.evaluate(()=>document.fonts.check('italic 700 24px "Lobster Two"'))).toBe(true);
   expect(await page.locator('dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
   await page.screenshot({path:`${evidence}/opening-${viewport.width}.png`});
   await page.locator('[data-action=start]').click();

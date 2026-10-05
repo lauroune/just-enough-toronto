@@ -278,6 +278,7 @@ export class Neighbourhood {
   collisionBounds(){return {static:this.world.obstacles,works:this.world.worksBounds,snow:this.world.snowBounds};}
   // Offline film capture advances the real scene at a fixed timestep. It does
   // not change the normal player camera, physics or render loop.
+  captureStep(dt=1/30){cancelAnimationFrame(this.frame);this.tick(this.last+dt*1000);cancelAnimationFrame(this.frame);}
   captureFrame(shot:{pip:Point;camera:[number,number,number];target:[number,number,number];heading:number;time:number;dt:number;fov?:number}){
     cancelAnimationFrame(this.frame);this.paused=false;this.inputLocked=true;
     this.mode='explore';this.day=0;this.clearRoute();this.clearEvent();

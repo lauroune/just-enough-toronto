@@ -68,3 +68,7 @@ Original code is MIT licensed. **That licence does not cover every media asset.*
 Mike Murchison’s own photo library and recorded videos are credited as inputs. Third-party mural art and documentary imagery retain their creators’ rights; they are not offered under MIT or CC0. Replace or obtain permission for those images when required for your reuse. Attribution is not a substitute for permission.
 
 [Mike Murchison](https://murch.org/) · [@mimurchison](https://x.com/mimurchison)
+
+### Trailer
+
+The post features a 1080p loop captured from the running game, including a real brief-editing interaction. With the development server on port 5178 and FFmpeg on your PATH, run `FILM_DIR=evidence/trailer node scripts/capture-film.mjs`, then `node scripts/capture-gameplay-film.mjs`, and `node scripts/assemble-trailer.mjs`. The last step writes the web video and poster into `site/assets/`. The title uses the same self-hosted Lobster Two face as the game; Newsreader supplies the complementary serif.

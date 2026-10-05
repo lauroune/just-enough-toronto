@@ -22,6 +22,49 @@ export function buildQueenVideoDetail(detail:Factory,kit:ReturnType<typeof build
  }
  function canopy(g:T.Group,w:number,y:number,color:number){const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute([-w/2,y,.30,w/2,y,.30,w/2,y-.63,1.24,-w/2,y-.63,1.24],3));geo.setIndex([0,2,1,0,3,2]);geo.computeVertexNormals();const mat=new T.MeshStandardMaterial({color,roughness:.85,side:T.DoubleSide}),m=new T.Mesh(geo,mat);m.castShadow=true;g.add(m);box(g,0,y-.71,1.25,w,.16,.065,color);for(const x of [-w*.46,w*.46])line(g,[x,y-.90,.18],[x,y-.63,1.23],.021);}
  function ordinaryShop(g:T.Group,w:number,color:number){box(g,0,1.9,.075,w-.08,3.8,.13,color);pane(g,-.55,1.91,w-1.82,2.58,.21,color,3,false);pane(g,w/2-.70,1.55,.97,2.93,.24,color,3,false);box(g,-.55,.42,.27,w-1.82,.7,.09,color);for(const x of [-w/2+.14,w/2-.14])box(g,x,1.92,.21,.17,3.85,.29,color);}
+ // Ed's official Leslieville photograph: royal-blue canvas, mustard cornice,
+ // aluminium entry, gooseneck lamps and painted green bench. Upper windows
+ // retain the mapped row profile; unseen interiors are illustrative.
+ {
+  const {g,w}=front('920 Queen St E'),blue=0x316da5,yellow=0xc6a04f,metal=0xb3b0a0;
+  box(g,0,1.74,.08,w-.08,3.45,.18,yellow);
+  pane(g,-2.02,1.72,1.66,2.82,.22,metal,3,false);
+  pane(g,.82,1.72,1.50,2.82,.22,metal,3,false);
+  pane(g,2.38,1.72,1.25,2.82,.22,metal,3,false);
+  pane(g,-.58,1.55,1.10,2.86,.24,metal,3,false);
+  line(g,[-.19,1.1,.29],[-.19,1.62,.29],.024,metal);
+  box(g,-.58,.09,.30,1.24,.13,.64,0x647d88);
+  cornice(g,w,4.18,yellow,false);box(g,0,4.09,.16,w,.30,.32,yellow);
+  canopy(g,w,4.00,blue);
+  const cv=document.createElement('canvas');cv.width=1536;cv.height=256;const c=cv.getContext('2d')!;
+  c.fillStyle='#316da5';c.fillRect(0,0,1536,256);c.strokeStyle='#e5c36a';c.lineWidth=4;c.strokeRect(7,7,1522,242);
+  c.textAlign='center';c.fillStyle='#fff4d4';c.font='bold 110px Georgia';c.fillText('ED’S',768,155);c.font='29px Arial';c.fillText('REAL SCOOP',768,198);
+  const tex=new T.CanvasTexture(cv);tex.colorSpace=T.SRGBColorSpace;tex.anisotropy=8;
+  const face=new T.Mesh(new T.PlaneGeometry(w-.10,.97),new T.MeshStandardMaterial({map:tex,roughness:.85}));face.position.set(0,3.72,.83);face.rotation.x=-Math.atan2(.94,.63);g.add(face);
+  // Four curved lamp arms, with bell-shaped shades.
+  for(const x of [-2.30,-.78,.78,2.30]){const curve=new T.CatmullRomCurve3([new T.Vector3(x,4.43,.12),new T.Vector3(x,4.63,.35),new T.Vector3(x,4.55,.75),new T.Vector3(x,4.36,.92)]);const arm=new T.Mesh(new T.TubeGeometry(curve,10,.025,6,false),material(0x293331));g.add(arm);const lamp=new T.Mesh(new T.ConeGeometry(.16,.18,16,1,true),material(0x293331));lamp.position.set(x,4.29,.92);g.add(lamp);}
+  const benchX=-2.07;
+  for(let j=0;j<4;j++)box(g,benchX,.53,.48+j*.09,1.82,.055,.075,0x53825f);
+  for(let j=0;j<4;j++)box(g,benchX,.70+j*.10,.43,1.82,.075,.055,0x69956b);
+  for(const x of [benchX-.66,benchX+.66]){box(g,x,.27,.61,.07,.50,.41,0x334a3e);box(g,x,.76,.43,.055,.71,.065,0x334a3e);}
+  obstacles.push({x:348.622+benchX,z:-8.20,w:1.85,d:.62,h:1.1,tag:'Ed’s storefront bench'});
+ }
+ // The wide retail frontage opposite the civic clock: low grey parapet,
+ // blue BMO bay and pale LCBO surround. Sub-bay widths are video estimates
+ // inside the City's 772 Queen parcel, not separately surveyed leases.
+ {
+  const {g,w}=front('772 Queen St E'),grey=new T.MeshStandardMaterial({color:0xa6a9a1,bumpMap:brick.map,bumpScale:.025,roughness:.94});
+  facadeBox(g,0,5.20,.10,w,3.65,.20,grey);box(g,0,7.08,.12,w,.13,.31,0x5c615d);
+  for(const [x,bw,color] of [[-7.15,4.8,0x43674d],[-2.55,4.25,0x276495],[3.83,8.40,0xccc5a6]]){
+   box(g,x,2.02,.23,bw,4.04,.31,color);
+   pane(g,x-.57,1.51,bw-1.65,2.75,.42,0xadb5aa,0,false);
+   pane(g,x+bw/2-.68,1.49,.96,2.79,.43,0xaeb7ad,0,false);
+  }
+  sign(g,'DOLLARAMA','',-7.15,3.51,.40,4.52,.78,'#315b3a','#eac94f','Arial',true);
+  sign(g,'BMO','Bank of Montreal',-2.55,3.52,.40,4.12,.81,'#21649b','#f4eee0','Arial',true);
+  sign(g,'LCBO','',3.83,3.56,.40,8.05,.94,'#ccc5a6','#f5f1dc','Georgia',true);
+  for(const x of [-.54,3.74,7.99])box(g,x,1.49,.53,.045,2.78,.045,0xa9b3ad);
+ }
  //730/732 storefronts. The red graffiti is a partial literal video crop;
  //unknown lettering and unseen pieces are not completed by guesswork.
  for(const address of ['730 Queen St E','732 Queen St E']){

@@ -14,7 +14,7 @@ const vec=(x:number,y:number,z:number)=>new T.Vector3(x,y,z);
 type Factory=(x:number,z:number)=>T.Group;
 
 export function buildOntarioLine(detail:Factory,obstacles:Obstacle[],parent:T.Group){
- const s=LESLIEVILLE,g=new T.Group();g.name='Completed Leslieville Station';g.position.set(s.x,0,s.z);g.rotation.y=s.yaw;detail(s.x,0).add(g);
+ const s=LESLIEVILLE,g=new T.Group();g.name='Completed Leslieville Station';g.userData.terrainRigid=true;g.position.set(s.x,0,s.z);g.rotation.y=s.yaw;detail(s.x,0).add(g);
  const copper=0x9b5039,edge=0x575850,cream=0xdfd8c7;
  const glass=new T.MeshStandardMaterial({color:0x8aa4b1,roughness:.18,metalness:.30,transparent:true,opacity:.42,depthWrite:false,side:T.DoubleSide});
  const warm=new T.MeshStandardMaterial({color:0xf6ddb4,emissive:0xffce86,emissiveIntensity:.45,roughness:.6});
@@ -59,7 +59,7 @@ export function buildOntarioLine(detail:Factory,obstacles:Obstacle[],parent:T.Gr
   const doorX=z<0?len/2-7.6:-len/2+7.6;
   box(front,doorX,1.7,.26,6.4,3.35,.06,0x313936);
   for(const dx of [-2.34,-.78,.78,2.34]){const panel=box(front,doorX+dx,1.53,.34,1.46,2.92,.045,0xffffff);panel.material=glass;box(front,doorX+dx,1.03,.385,1.45,.095,.04,0xd9bd61);box(front,doorX+dx+.68,1.5,.40,.035,2.94,.05,cream);}
-  sign(front,'LESLIEVILLE STATION','',doorX,3.64,.41,7.8,.51,'#202626','#f6f1e5','Arial');
+  sign(front,'LESLIEVILLE STATION','',doorX,3.64,.41,7.8,.51,'#202626','#f6f1e5','Arial',true);
   sign(front,'T','ONTARIO LINE',doorX-5.3,2.23,.4,.65,2.25,'#282c2c','#f7f0df','Arial');
   sign(front,'TTC','',doorX-5.3,3.77,.4,.65,.4,'#c74b45','#fff6df','Arial');
   // Queen-facing wall has silver fluting and narrow warm entry glazing.

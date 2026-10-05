@@ -69,7 +69,7 @@
 
 /* Time and a Clock: open lettering, warm steel and the curve of the river.
    Instrument Serif is an interpretation, not the artwork's original typeface. */
-:root{--display:'Instrument Serif',Georgia,serif}
+:root{--display:'Newsreader',Georgia,serif;--wordmark:'Lobster Two',cursive}
 .logo{font-family:var(--display);font-weight:400;font-size:28px;letter-spacing:.14em;text-transform:uppercase}
 .eyebrow{font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:.16em}
 .river-mark{display:block;width:180px;height:26px;fill:none;stroke:currentColor;stroke-width:1;opacity:.8}
@@ -243,3 +243,14 @@
 }
 
 @media(max-width:480px){.hud-top .identity{display:none}.top-actions{margin-left:auto}}
+
+/* Riverside mural lettering: connected brush script, reserved for the name. */
+@font-face{font-family:'Lobster Two';font-style:italic;font-weight:700;font-display:swap;src:url(/fonts/LobsterTwo-BoldItalic.ttf) format('truetype')}
+@font-face{font-family:'Newsreader';font-style:normal;font-weight:200 800;font-display:swap;src:url(/fonts/Newsreader.ttf) format('truetype')}
+.logo,.overview-content h2{font-family:var(--wordmark);font-style:italic;font-weight:700;text-transform:none;letter-spacing:-.025em;line-height:1.18}
+.logo{font-size:35px;white-space:nowrap;text-shadow:0 2px 10px #18343a99}
+.overview-content h2{font-size:62px;margin:0 0 10px;color:#28564e}
+.overview-content .game-subtitle{font-family:var(--display);font-size:20px;font-weight:500;letter-spacing:0}
+.overview-copy p{font-family:var(--display);font-size:19px;line-height:1.5}
+@media(max-width:760px){.logo{font-size:30px}.overview-content h2{font-size:51px}.overview-content .game-subtitle{font-size:18px}.overview-copy p{font-size:18px}}
+@media(max-height:560px){.overview-content h2{font-size:42px}.overview-content .game-subtitle{margin-bottom:12px}}

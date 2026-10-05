@@ -189,10 +189,12 @@ export function buildStreetArchitecture(tile:Factory,detail:Factory,far:Factory,
    box(g,-w/2+.28,1.4,.18,.20,.27,.15,0x92968a);
    chimney(silhouette,u,p);
   }else if(p.family==='shop'){
-   cornice(g,w,p.eave-.20,0x605c53,true);for(let floor=1;floor<p.floors;floor++){const y=3.6+(floor-.5)*3.2;for(let k=0;k<p.windows;k++){const x=(k+.5)*w/p.windows-w/2;window(g,x,y,Math.min(1.15,w/p.windows*.59),1.90,p.trim,.09,(index+k)%4);box(g,x,y+1.1,.10,Math.min(1.45,w/p.windows*.74),.16,.19,0xb8a689);}box(g,0,y-1.46,.08,w,.08,.15,0xa69680);}
+   if(u.address!=='772 Queen St E')cornice(g,w,p.eave-.20,0x605c53,true);for(let floor=1;floor<p.floors;floor++){const y=3.6+(floor-.5)*3.2;for(let k=0;k<p.windows;k++){const x=(k+.5)*w/p.windows-w/2;window(g,x,y,Math.min(1.15,w/p.windows*.59),1.90,p.trim,.09,(index+k)%4);box(g,x,y+1.1,.10,Math.min(1.45,w/p.windows*.74),.16,.19,0xb8a689);}box(g,0,y-1.46,.08,w,.08,.15,0xa69680);}
+   if(!['920 Queen St E','772 Queen St E'].includes(u.address)){
    const entry=w*.31,shopW=Math.max(.9,w-1.75);box(g,0,1.61,.03,w-.2,3.17,.08,0x34413e);window(g,-.57,1.73,shopW,2.43,0x74776b,.105,2);door(g,entry,0x3d4844,.06);
    box(g,0,3.23,.16,w-.05,.43,.23,[0x374c4b,0x51453e,0x30393f,0xb7b09a][index%4]);cornice(g,w,3.47,0x52534b);
    box(g,-.57,.37,.12,shopW,.44,.09,0x48554f);for(let x=-w/2+.4;x<w/2;x+=1.5)box(g,x,.36,.19,.85,.28,.025,0x35423d);
+   }
   }else if(p.family==='modern-house'){
    const entry=-w*.28,wx=w*.19;door(g,entry,p.door,.18);window(g,wx,1.62,w*.48,1.92,0x666f72,.10,1);
    for(let level=1;level<p.floors;level++){window(g,0,level*3.1+1.55,w*.72,2.5,0x6c7375,.16,1);box(g,0,level*3.1+.07,.26,w-.08,.16,.64,0x5c6264);box(g,0,level*3.1-.03,.27,w-.12,.045,.56,0xb3794b);}

@@ -62,6 +62,7 @@ export function elevation(u:StreetUnit):ElevationProfile{
  // rest of the row's exact colours are an inference, tracked in the report.
  if(u.street==='Boulton Ave'&&n>=50&&n<=74&&n%2===0)Object.assign(p,{family:'modern-house',floors:3,eave:9.5,roof:.55,brick:(Math.floor(n/4)%2)?0xf0c8af:0x565b5d,trim:0x53595b,note:'Modern row family; only 68 individually photo-reviewed.'});
  if(queen&&n>=686&&n<=698&&n%2===0)Object.assign(p,{floors:2,eave:7.7});
+ if(u.address==='772 Queen St E')Object.assign(p,{floors:1,eave:7.1,brick:0xb6b8ad,trim:0xb8bcaf,note:'Video-observed low grey retail fascia; City roof union is not the front elevation.'});
  if(queen&&n>=916&&n<=932&&n%2===0)Object.assign(p,{floors:n===924?1:2,eave:n===924?4.1:7.1});
  if(VIDEO_UNIT_ADDRESSES.has(u.address))Object.assign(p,{floors:u.number==='893'?3:2,eave:u.number==='893'?13.6:u.number==='904'?9.88:7.5,roof:.20,source:VIDEO_SOURCE,note:'reference collection video-informed ground storefront. Upper profiles on the north shop row are only partially visible and remain approximate.'});
  return {...p,...explicit[u.address]};

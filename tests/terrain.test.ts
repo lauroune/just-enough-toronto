@@ -51,3 +51,17 @@ test('scattered leaves follow their own ground height and slope inside a transfo
  }
  geometry.dispose();material.dispose();
 });
+
+
+test('rigid station sign stays horizontal on a slope, including its reverse face',async()=>{
+ const T=await import('three'),{drapeStatic}=await import('../src/terrain-geometry');
+ const root=new T.Group();root.position.set(12,2,-240);root.rotation.y=.4;root.scale.set(1.2,1.3,1.1);
+ const sign=new T.Mesh(new T.PlaneGeometry(8,.6),new T.MeshBasicMaterial());sign.position.set(8,3.6,10);sign.rotation.y=-.7;sign.userData.terrainRigid=true;root.add(sign);
+ const reverse=sign.clone();reverse.userData={};reverse.position.set(0,0,-.01);sign.add(reverse);root.updateMatrixWorld(true);
+ const before=new T.Vector3().setFromMatrixPosition(sign.matrixWorld), original=Array.from(sign.geometry.getAttribute('position').array);
+ drapeStatic(root,new Set());root.updateMatrixWorld(true);
+ const after=new T.Vector3().setFromMatrixPosition(sign.matrixWorld);
+ assert(Math.abs(after.y-before.y-groundHeight(before.x,before.z))<.0001);
+ assert.deepEqual(Array.from(sign.geometry.getAttribute('position').array),original);
+ for(const mesh of [sign,reverse]){const p=mesh.geometry.getAttribute('position'),a=new T.Vector3().fromBufferAttribute(p,0).applyMatrix4(mesh.matrixWorld),b=new T.Vector3().fromBufferAttribute(p,1).applyMatrix4(mesh.matrixWorld);assert(Math.abs(a.y-b.y)<.0001);}
+});

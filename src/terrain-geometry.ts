@@ -12,6 +12,14 @@ export function drapeStatic(root:T.Object3D,skip:Set<T.Object3D>){
  root.updateMatrixWorld(true);
  const walk=(o:T.Object3D)=>{
   if(skip.has(o))return;
+  // Rigid fixtures and engineered structures move to their anchor elevation;
+  // their lettering, doors and rooflines must not bend with the ground mesh.
+  if(o.userData.terrainRigid){
+   const origin=new T.Vector3().setFromMatrixPosition(o.matrixWorld);
+   origin.y+=groundHeight(origin.x,origin.z);
+   if(o.parent)origin.applyMatrix4(o.parent.matrixWorld.clone().invert());
+   o.position.copy(origin);o.updateMatrixWorld(true);return;
+  }
   if(o instanceof T.InstancedMesh){
    // Each leaf has a different world position. Draping its shared geometry
    // samples only the tile origin and leaves the whole scatter on one level.

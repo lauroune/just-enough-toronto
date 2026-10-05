@@ -45,6 +45,7 @@ export const VISITS:{id:string;label:string;position:Point;yaw:number}[]=[
 {id:'booth-shops',label:'Booth · north storefronts',position:[248,-7.95],yaw:-Math.PI/2},
 {id:'park-entrance',label:'Jimmie Simpson · Queen entrance',position:[210,-7.0],yaw:-2.15},
 {id:'queen-books',label:'Queen Books',position:[329,6.8],yaw:Math.PI},
+{id:'eds',label:'Ed’s Real Scoop · 920 Queen',position:[348.6,-5.9],yaw:Math.PI},
 {id:'mercury',label:'Mercury Espresso',position:[393,-6.5],yaw:0},
 {id:'poulton',label:'Poulton Block',position:[-61,6.6],yaw:-2.75},
 {id:'bank',label:'744 Queen · former bank',position:[-188,6.5],yaw:Math.PI},

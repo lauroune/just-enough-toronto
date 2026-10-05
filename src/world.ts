@@ -27,11 +27,11 @@ const signPages:SignPage[]=[];
 function signPage(){
  let p=signPages.at(-1);if(!p||p.used===64){const canvas=document.createElement('canvas');canvas.width=canvas.height=2048;const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;map.anisotropy=8;p={canvas,map,material:new THREE.MeshBasicMaterial({map,side:THREE.FrontSide,toneMapped:true}),used:0};signPages.push(p);}return p;
 }
-export function sign(parent:THREE.Object3D,words:string,sub:string,x:number,y:number,z:number,w:number,h:number,bg:string,fg='#ffebc1',font='Georgia'){
+export function sign(parent:THREE.Object3D,words:string,sub:string,x:number,y:number,z:number,w:number,h:number,bg:string,fg='#ffebc1',font='Georgia',naturalAspect=false){
  const page=signPage(),id=page.used++,left=id%4*512,top=Math.floor(id/4)*128,cw=508,ch=124,c=page.canvas.getContext('2d')!;
- c.save();c.translate(left+2,top+2);c.beginPath();c.rect(-2,-2,512,128);c.clip();c.fillStyle=bg;c.fillRect(-2,-2,512,128);c.strokeStyle=fg;c.globalAlpha=.45;c.lineWidth=1;c.strokeRect(8,5,cw-16,ch-10);c.globalAlpha=1;c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';c.font=`bold ${(sub?120:145)/384*ch}px ${font}`;c.fillText(words,cw/2,sub?ch*.4:ch*.51,cw-38);if(sub){c.font=`${27/384*ch}px sans-serif`;c.fillText(sub,cw/2,ch*.76,cw-50);}c.restore();page.map.needsUpdate=true;
+ c.save();c.translate(left+2,top+2);c.beginPath();c.rect(-2,-2,512,128);c.clip();c.fillStyle=bg;c.fillRect(-2,-2,512,128);c.strokeStyle=fg;c.globalAlpha=.45;c.lineWidth=1;c.strokeRect(8,5,cw-16,ch-10);c.globalAlpha=1;c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';c.font=`bold ${(sub?120:145)/384*ch}px ${font}`;if(naturalAspect){const sx=cw/ch/(w/h);c.save();c.translate(cw/2,0);c.scale(sx,1);c.font=`600 ${ch*.63}px ${font}`;c.fillText(words,0,sub?ch*.4:ch*.51,(cw-38)/sx);c.restore();}else c.fillText(words,cw/2,sub?ch*.4:ch*.51,cw-38);if(sub){c.font=`${27/384*ch}px sans-serif`;c.fillText(sub,cw/2,ch*.76,cw-50);}c.restore();page.map.needsUpdate=true;
  const geometry=new THREE.PlaneGeometry(w,h),uv=geometry.getAttribute('uv');for(let i=0;i<uv.count;i++)uv.setXY(i,(left+2+uv.getX(i)*cw)/2048,1-(top+2+(1-uv.getY(i))*ch)/2048);
- const mesh=new THREE.Mesh(geometry,page.material);mesh.position.set(x,y,z);const reverse=new THREE.Mesh(geometry,page.material);reverse.rotation.y=Math.PI;reverse.position.z=-.008;mesh.add(reverse);parent.add(mesh);return mesh;
+ const mesh=new THREE.Mesh(geometry,page.material);mesh.userData.terrainRigid=true;mesh.position.set(x,y,z);const reverse=new THREE.Mesh(geometry,page.material);reverse.rotation.y=Math.PI;reverse.position.z=-.008;mesh.add(reverse);parent.add(mesh);return mesh;
 }
 const vertexMaterials=new Map<string,THREE.MeshStandardMaterial|THREE.MeshBasicMaterial>();
 export function mergeStatic(group:THREE.Group){

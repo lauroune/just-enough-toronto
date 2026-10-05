@@ -225,12 +225,13 @@ export function makeGeoWorld():World{
  const tram=makeTram();tram.scale.set(30.2/18.4,1.2,1);tram.position.set(-600,.04,queenZ(-600)+1.55);group.add(tram);
  const {mesh:sky,top:sunUniform}=makePastelSky();group.add(sky);
  const leafPositions=new Float32Array(16*3);for(let i=0;i<16;i++){leafPositions[i*3]=(rand()-.5)*25;leafPositions[i*3+1]=rand()*8;leafPositions[i*3+2]=(rand()-.5)*25;}const leafG=new T.BufferGeometry();leafG.setAttribute('position',new T.BufferAttribute(leafPositions,3));const leaves=new T.Points(leafG,new T.PointsMaterial({color:0xbaa17e,size:.07}));group.add(leaves);
- for(const g of [...tiles.values(),...detailTiles.values(),...farTiles.values()])mergeStatic(g);for(const g of farTiles.values())g.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});mergeStatic(works);mergeStatic(snowbank);
+
  //Only scatter on mapped pavement beside existing trees.
  const leafSites:Point[]=STREET.objects['city-trees'].map(t=>t.p).filter(p=>Math.abs(p[1]-queenZ(p[0]))<12&&p[0]>-580&&p[0]<510);
  for(let x=-908;x<520;x+=8.5){leafSites.push([x,queenZ(x)-5.35],[x+2.3,queenZ(x)+5.55]);}
  addFallenLeaves(autumn,leafSites);
  drapeStatic(group,new Set([sky,tram,ontario.train,...people.map(p=>p.group)]));
+ for(const g of [...tiles.values(),...detailTiles.values(),...farTiles.values()])mergeStatic(g);for(const g of farTiles.values())g.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});mergeStatic(works);mergeStatic(snowbank);
  for(const person of people)person.group.position.y=groundHeight(person.x,person.z);
  return {updateTransit:(time:number,reduced:boolean)=>{ontario.update(time,reduced);ontario.train.position.y=6.40+groundHeight(ontario.train.position.x,ontario.train.position.z);},updateVisibility:(x:number,z:number)=>{for(const g of autumn.children){const c=g.userData.center;if(c)g.visible=Math.hypot(x-c[0],z-c[1])<180;}for(const g of detailTiles.values()){const c=g.userData.center;g.visible=Math.hypot(x-c[0],z-c[1])<280;}for(const g of farTiles.values()){const c=g.userData.center,d=Math.hypot(x-c[0],z-c[1]);g.visible=(d>=280||c[0]>=750)&&d<1400;}},group,snow,autumn,works,snowbank,obstacles,gate,worksBounds,snowBounds,tram,people,markers,recipient,sky,sunUniform,leaves,leafPositions,cameraOccluders:[]};
 }

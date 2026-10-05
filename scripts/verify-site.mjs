@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 const base=(process.env.SITE_URL||'http://127.0.0.1:4174').replace(/\/$/,'');
 const out=process.env.SITE_EVIDENCE||'evidence/personal-site';await mkdir(out,{recursive:true});
-const browser=await chromium.launch({channel:'chrome',headless:true});
+const browser=await chromium.launch({channel:'chrome',headless:true,args:process.env.VERIFY_HOST_IP?[`--host-resolver-rules=MAP murch.org ${process.env.VERIFY_HOST_IP}, MAP www.murch.org ${process.env.VERIFY_HOST_IP}`]:[]});
 const errors=[],results=[];
 try {
  const context=await browser.newContext({viewport:{width:1440,height:1100}});
@@ -21,7 +21,7 @@ try {
  }
  await page.setViewportSize({width:1440,height:960});await page.goto(`${base}/justenough/?debug`);await page.waitForFunction(()=>window.__ENOUGH__?.scene().drawCalls>0,{}, {timeout:60000});await page.locator('[data-action=start]').click();await page.locator('[data-action=map]').click();await page.locator('[data-place=poulton]').click();await page.waitForTimeout(600);await page.screenshot({path:`${out}/embedded-game.png`});
  const game=await page.evaluate(()=>window.__ENOUGH__.scene());
- const missing=await page.request.get(`${base}/missing-check.webp`);
- const checks={noErrors:errors.length===0,layout:results.every(r=>!r.overflow&&!r.brokenImages),accessibility:results.every(r=>r.accessibility.length===0),game:game.drawCalls>0&&game.mode==='explore',missingAssetReturns404:missing.status()===404};
+ const missingStatus=await page.evaluate(async()=> (await fetch('/missing-check.webp')).status);
+ const checks={noErrors:errors.length===0,layout:results.every(r=>!r.overflow&&!r.brokenImages),accessibility:results.every(r=>r.accessibility.length===0),game:game.drawCalls>0&&game.mode==='explore',missingAssetReturns404:missingStatus===404};
  await writeFile(`${out}/report.json`,JSON.stringify({checks,results,game,errors},null,2));console.log(JSON.stringify({checks,results:results.map(({links,...r})=>r),errors},null,2));if(Object.values(checks).some(x=>!x))process.exitCode=1;
 } finally {await browser.close();}
