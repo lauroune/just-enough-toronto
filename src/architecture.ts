@@ -1,3 +1,4 @@
+import {rigidBuilding} from './building-ground';
 import * as T from 'three';
 import {box,rod,orb,material} from './world';
 
@@ -27,7 +28,7 @@ function art(g:T.Group,map:T.Texture,x:number,y:number,z:number,w:number,h:numbe
 function line(g:T.Group,a:number[],b:number[],r=.025,color=0x4e5250){rod(g,new T.Vector3(...a as [number,number,number]),new T.Vector3(...b as [number,number,number]),r,color);}
 
 export function buildLandmarkArchitecture(detail:Factory,m:Palette,glass:T.MeshStandardMaterial){
- const front=(x:number,z:number,yaw=0)=>{const g=new T.Group();g.position.set(x,0,z);g.rotation.y=yaw;detail(x,z).add(g);return g;};
+ const front=(x:number,z:number,yaw=0)=>{const g=new T.Group();g.position.set(x,0,z);g.rotation.y=yaw;rigidBuilding(g,x,z);detail(x,z).add(g);return g;};
  const pane=(g:T.Group,x:number,y:number,w:number,h:number,z=.1,frame=0xced0c5,mat=glass)=>{box(g,x,y,z-.035,w+.11,h+.11,.065,0x333b3b);const p=box(g,x,y,z,w,h,.025,0xffffff);p.material=mat;for(const dx of [-w/2,w/2])box(g,x+dx,y,z+.035,.052,h+.08,.07,frame);for(const dy of [-h/2,h/2])box(g,x,y+dy,z+.035,w+.09,.052,.07,frame);return p;};
  const curtain=canvas((c,w,h)=>{const grad=c.createLinearGradient(0,0,0,h);grad.addColorStop(0,'#a6b6b8');grad.addColorStop(.4,'#65777a');grad.addColorStop(1,'#46575a');c.fillStyle=grad;c.fillRect(0,0,w,h);for(let x=10;x<w;x+=18){c.fillStyle=x%36===10?'#d3d6cacc':'#eceadaba';c.fillRect(x,12,14,h*.78);}c.fillStyle='#24333577';c.fillRect(0,h*.81,w,h*.19);},256,512);
  const curtainMat=new T.MeshStandardMaterial({map:curtain,roughness:.65});

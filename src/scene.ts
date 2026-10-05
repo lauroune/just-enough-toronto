@@ -20,8 +20,10 @@ import type { Obstacle } from './motion';
 import { factsForDay, NODES } from './game';
 import type { FactId, Journey, Point } from './game';
 
+export type CaptureLens={camera:[number,number,number];target:[number,number,number];fov:number};
 export type SceneMode='title'|'explore'|'delivery'|'result'|'complete';
 export class Neighbourhood {
+ private captureLens?:CaptureLens;
  private life:StreetLife;
  private quality:RenderQuality=savedQuality();
  private film?:FilmFinish;
@@ -136,7 +138,7 @@ export class Neighbourhood {
       j.distance=nextDistance;this.position.set(next.x,.12,next.z);this.heading=approachAngle(this.heading,next.heading,9,dt);
       this.velocity.set(Math.sin(next.heading)*speed,0,Math.cos(next.heading)*speed);j.progress(j.length?j.distance/j.length:1);
       this.cartPosition.set(trailing[0],.12,trailing[1]);this.cartHeading=Math.atan2(next.x-trailing[0],next.z-trailing[1]);
-      if(j.distance>=j.length){this.journey=undefined;this.pendingSkip=false;this.velocity.set(0,0,0);this.eyeTarget.setHex(j.result.success?0xb9f0b8:0xffbd67);this.finishTime=this.elapsed;this.mode='result';this.cue(j.result.success?'success':'blocked');if(j.result.success){this.cameraYaw=this.day>0?-1.08:.72;this.heading=this.day>0?Math.PI-1.08:Math.PI;this.cameraPitch=.18;this.parcelDelivered.position.set(this.position.x+.8,.12,this.position.z+.6);this.parcelDelivered.visible=true;this.pip.parcel.visible=false;}j.resolve();}
+      if(j.distance>=j.length){this.journey=undefined;this.pendingSkip=false;this.velocity.set(0,0,0);this.eyeTarget.setHex(j.result.success?0xb9f0b8:0xffbd67);this.finishTime=this.elapsed;this.mode='result';this.cue(j.result.success?'success':'blocked');if(j.result.success){this.cameraYaw=this.day>0?-1.08:.72;this.heading=this.day>0?Math.PI-1.08:Math.PI;this.cameraPitch=.18;this.parcelDelivered.position.set(this.position.x+.8,.01+groundHeight(this.position.x+.8,this.position.z+.6),this.position.z+.6);this.parcelDelivered.visible=true;this.pip.parcel.visible=false;}j.resolve();}
       return;
     }
     if(this.mode!=='explore'||this.inputLocked){this.velocity.multiplyScalar(Math.exp(-15*dt));return;}
@@ -182,7 +184,7 @@ export class Neighbourhood {
     this.pip.eyeMaterial.color.lerp(this.eyeTarget,Math.min(1,dt*5));
     this.cart.position.copy(this.cartPosition);this.cart.position.y=this.cartPosition.y-.093;this.cart.rotation.order='YXZ';this.cart.rotation.y=this.cartHeading;
     const cartGrade=groundGradient(this.cartPosition.x,this.cartPosition.z);this.cart.rotation.x=-Math.atan(cartGrade.x*Math.sin(this.cartHeading)+cartGrade.z*Math.cos(this.cartHeading));this.cart.rotation.z=Math.atan(cartGrade.x*Math.cos(this.cartHeading)-cartGrade.z*Math.sin(this.cartHeading));
-    if(this.parcelDelivered.visible&&!this.reduced){const t=THREE.MathUtils.clamp((this.elapsed-this.finishTime)*1.8,0,1);this.parcelDelivered.position.y=.12+groundHeight(this.parcelDelivered.position.x,this.parcelDelivered.position.z)+Math.sin(t*Math.PI)*.6;this.pip.body.rotation.z=Math.sin(t*Math.PI*4)*(1-t)*.09;}
+    if(this.parcelDelivered.visible){const t=THREE.MathUtils.clamp((this.elapsed-this.finishTime)*1.8,0,1);this.parcelDelivered.position.y=.01+groundHeight(this.parcelDelivered.position.x,this.parcelDelivered.position.z)+(this.reduced?0:Math.sin(t*Math.PI)*.6);if(!this.reduced)this.pip.body.rotation.z=Math.sin(t*Math.PI*4)*(1-t)*.09;}
   }
   private updateCamera(dt:number,snap=false){
     const title=this.mode==='title',result=this.mode==='result'||this.mode==='complete';
@@ -268,7 +270,7 @@ export class Neighbourhood {
   }
   private tick=(now:number)=>{
     if(this.disposed)return;const dt=Math.min((now-this.last)/1000||0,.035);this.last=now;
-    if(!document.hidden){if(!this.paused){this.elapsed+=dt;this.accumulator+=Math.min(dt,.1);while(this.accumulator>=1/90){this.move(1/90);this.ambience(1/90);this.physics.sync([this.position.x,this.position.z],[this.cartPosition.x,this.cartPosition.z],this.cartHeading,[this.world.tram.position.x,this.world.tram.position.z],this.life.bounds);this.accumulator-=1/90;}this.placeActors(dt);}this.updateCamera(dt);this.revealPlayer(dt);this.updateEvent();this.proximity();this.onSpeed(this.paused?0:this.velocity.length());this.world.updateVisibility?.(this.position.x,this.position.z);this.world.updateTransit?.(this.elapsed,this.reduced);if(this.film)this.colorPass=this.film.render(this.renderer,this.scene,this.camera,this.contactOcclusion,this.position,this.overview);else{const auto=this.renderer.info.autoReset;this.renderer.info.autoReset=false;this.renderer.info.reset();try{this.renderer.render(this.scene,this.camera);this.colorPass={calls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles};this.contactOcclusion?.render(this.renderer);}finally{this.renderer.info.autoReset=auto;}}}
+    if(!document.hidden){if(!this.paused){this.elapsed+=dt;this.accumulator+=Math.min(dt,.1);while(this.accumulator>=1/90){this.move(1/90);this.ambience(1/90);this.physics.sync([this.position.x,this.position.z],[this.cartPosition.x,this.cartPosition.z],this.cartHeading,[this.world.tram.position.x,this.world.tram.position.z],this.life.bounds);this.accumulator-=1/90;}this.placeActors(dt);}this.updateCamera(dt);if(this.captureLens)this.applyCaptureLens(this.captureLens);this.revealPlayer(dt);this.updateEvent();this.proximity();this.onSpeed(this.paused?0:this.velocity.length());this.world.updateVisibility?.(this.position.x,this.position.z);this.world.updateTransit?.(this.elapsed,this.reduced);if(this.film)this.colorPass=this.film.render(this.renderer,this.scene,this.camera,this.contactOcclusion,this.position,this.overview);else{const auto=this.renderer.info.autoReset;this.renderer.info.autoReset=false;this.renderer.info.reset();try{this.renderer.render(this.scene,this.camera);this.colorPass={calls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles};this.contactOcclusion?.render(this.renderer);}finally{this.renderer.info.autoReset=auto;}}}
     this.frame=requestAnimationFrame(this.tick);
   };
   visit(id:string){const place=VISITS.find(p=>p.id===id);if(!place||this.mode==='delivery')return;this.cancel();this.position.set(place.position[0],.08,place.position[1]);this.cartPosition.set(place.position[0]-.94,.08,place.position[1]);this.heading=place.yaw;this.cameraYaw=place.yaw;this.inputYaw=undefined;this.zoom=id==='riverside-mural'?4:id==='amber'?4.3:id==='king-river'?4.5:id==='opera'?4.2:7;this.cameraPitch=id==='riverside-mural'?-.01:id==='broadview'?-.42:['bank','opera','poulton','butchers'].includes(id)?-.25:id==='library'?-.33:['dark-horse','boulton-homes','amber','stone-pair','degrassi-bend','leslieville-station','station-plaza'].includes(id)?-.16:0;this.overview=false;this.physics.reset(place.position,[place.position[0]-.94,place.position[1]]);this.placeActors(0);this.snapCamera();this.proximity();}
@@ -278,8 +280,16 @@ export class Neighbourhood {
   collisionBounds(){return {static:this.world.obstacles,works:this.world.worksBounds,snow:this.world.snowBounds};}
   // Offline film capture advances the real scene at a fixed timestep. It does
   // not change the normal player camera, physics or render loop.
-  captureStep(dt=1/30){cancelAnimationFrame(this.frame);this.tick(this.last+dt*1000);cancelAnimationFrame(this.frame);}
-  captureFrame(shot:{pip:Point;camera:[number,number,number];target:[number,number,number];heading:number;time:number;dt:number;fov?:number}){
+  captureStep(dt=1/30,lens?:CaptureLens){if(lens)this.captureLens=lens;cancelAnimationFrame(this.frame);this.tick(this.last+dt*1000);cancelAnimationFrame(this.frame);}
+  private applyCaptureLens(lens:CaptureLens){
+    this.camera.position.copy(this.position).add(new THREE.Vector3(...lens.camera));
+    const target=this.position.clone().add(new THREE.Vector3(...lens.target));
+    this.camera.lookAt(target.x,this.camera.position.y,target.z);this.camera.fov=lens.fov;this.camera.updateProjectionMatrix();
+    const distance=Math.hypot(target.x-this.camera.position.x,target.z-this.camera.position.z);
+    this.camera.projectionMatrix.elements[9]=(target.y-this.camera.position.y)/Math.max(1,distance)*this.camera.projectionMatrix.elements[5];
+    this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
+  }
+  captureFrame(shot:{pip:Point;camera:[number,number,number];target:[number,number,number];heading:number;time:number;dt:number;fov?:number;level?:boolean}){
     cancelAnimationFrame(this.frame);this.paused=false;this.inputLocked=true;
     this.mode='explore';this.day=0;this.clearRoute();this.clearEvent();
     const previous=this.position.clone();
@@ -291,8 +301,12 @@ export class Neighbourhood {
     this.world.autumn.visible=true;this.world.snow.visible=false;this.world.snowbank.visible=false;
     this.callout.hidden=true;for(const marker of this.world.markers.values())marker.visible=false;
     this.camera.position.set(shot.camera[0],groundHeight(shot.camera[0],shot.camera[2])+shot.camera[1],shot.camera[2]);
-    this.camera.lookAt(shot.target[0],groundHeight(shot.target[0],shot.target[2])+shot.target[1],shot.target[2]);
+    const targetY=groundHeight(shot.target[0],shot.target[2])+shot.target[1];
+    this.camera.lookAt(shot.target[0],shot.level?this.camera.position.y:targetY,shot.target[2]);
     this.camera.fov=shot.fov??50;this.camera.updateProjectionMatrix();
+    // An off-axis architectural lens preserves verticals without rolling or
+    // stretching the world. This is confined to offline trailer photography.
+    if(shot.level){const distance=Math.hypot(shot.target[0]-this.camera.position.x,shot.target[2]-this.camera.position.z);this.camera.projectionMatrix.elements[9]=(targetY-this.camera.position.y)/Math.max(1,distance)*this.camera.projectionMatrix.elements[5];this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();}
     followGoldenSun(this.sun,this.position);
     this.world.updateVisibility?.(this.position.x,this.position.z);this.world.updateTransit?.(this.elapsed,false);
     if(this.film)this.film.render(this.renderer,this.scene,this.camera,this.contactOcclusion,this.position,false);

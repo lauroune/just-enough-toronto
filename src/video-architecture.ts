@@ -1,3 +1,4 @@
+import {rigidBuilding} from './building-ground';
 import * as T from 'three';
 import {box,rod,material} from './world';
 import {facadeBox} from './architecture';
@@ -14,7 +15,7 @@ type Masonry={red:T.MeshStandardMaterial;aged:T.MeshStandardMaterial;cream:T.Mes
 // identifiable passers-by are bundled into the game. Two small material crops
 // are recorded explicitly in private reference archive (not distributed)
 export function buildVideoArchitecture(tile:Factory,detail:Factory,m:Masonry,obstacles:Obstacle[]){
- const root=(x:number,z:number,yaw=0,permanent=false)=>{const g=new T.Group();g.position.set(x,0,z);g.rotation.y=yaw;(permanent?tile:detail)(x,z).add(g);return g;};
+ const root=(x:number,z:number,yaw=0,permanent=false)=>{const g=new T.Group();g.position.set(x,0,z);g.rotation.y=yaw;rigidBuilding(g,x,z);(permanent?tile:detail)(x,z).add(g);return g;};
  const line=(g:T.Group,a:number[],b:number[],r=.025,c=0x4a504d)=>rod(g,new T.Vector3(a[0],a[1],a[2]),new T.Vector3(b[0],b[1],b[2]),r,c);
  const red=m.red.clone();red.color.setHex(0xbb9988);const rose=m.red.clone();rose.color.setHex(0xc6a6a0);const old=m.red.clone();old.color.setHex(0xd4b39c);
  const buffMap=new T.TextureLoader().load('/materials/video/td-buff-brick.jpg');buffMap.colorSpace=T.SRGBColorSpace;buffMap.wrapS=buffMap.wrapT=T.RepeatWrapping;buffMap.repeat.set(.72,.82);buffMap.anisotropy=8;

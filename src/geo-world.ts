@@ -1,3 +1,4 @@
+import {rigidBuilding} from './building-ground';
 import {TessellateModifier} from 'three/addons/modifiers/TessellateModifier.js';
 import {drapeStatic} from './terrain-geometry';
 import {groundHeight} from './terrain';
@@ -40,7 +41,7 @@ function polygon(p:Point[],y:number,mat:T.Material,holes:Point[][]=[]){const sha
 function wallShape(b:GeoBuilding,height:number){const shape=new T.Shape(b.p.map(v=>new T.Vector2(v[0],-v[1])));for(const h of b.holes)shape.holes.push(new T.Path(h.map(v=>new T.Vector2(v[0],-v[1]))));const g=new T.ExtrudeGeometry(shape,{depth:height,bevelEnabled:false,steps:1,curveSegments:1});g.rotateX(-Math.PI/2);return g;}
 function strip(parent:T.Group,path:Point[],width:number,y:number,mat:T.Material,offset=0){const p:Point[]=[path[0]];for(let i=1;i<path.length;i++){const a=path[i-1],b=path[i],steps=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/5);for(let k=1;k<=steps;k++)p.push([a[0]+(b[0]-a[0])*k/steps,a[1]+(b[1]-a[1])*k/steps]);}for(let i=1;i<p.length;i++){const a=p[i-1],b=p[i],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);if(!len)continue;const nx=-dz/len,nz=dx/len;const geom=new T.BufferGeometry();const h=width/2;const points=[[a[0]+nx*(offset-h),y,a[1]+nz*(offset-h)],[b[0]+nx*(offset-h),y,b[1]+nz*(offset-h)],[b[0]+nx*(offset+h),y,b[1]+nz*(offset+h)],[a[0]+nx*(offset+h),y,a[1]+nz*(offset+h)]];geom.setAttribute('position',new T.Float32BufferAttribute(points.flat(),3));geom.setAttribute('uv',new T.Float32BufferAttribute([0,0,len,0,len,width,0,width],2));geom.setIndex([0,2,1,0,3,2]);geom.computeVertexNormals();const m=new T.Mesh(geom,mat);m.receiveShadow=true;parent.add(m);}}
 function clipped(p:Point[]){const result:Point[][]=[];for(let i=1;i<p.length;i++){let [x,z]=p[i-1];const dx=p[i][0]-x,dz=p[i][1]-z;let lo=0,hi=1;for(const [q,r] of [[-dx,x+960],[dx,980-x],[-dz,z+410],[dz,190-z]]){if(!q){if(r<0){hi=-1;break;}}else{const t=r/q;if(q<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);}}if(lo<=hi)result.push([[x+dx*lo,z+dz*lo],[x+dx*hi,z+dz*hi]]);}return result;}
-function facadeFrame(parent:T.Group,a:Point,b:Point,p:Point[]){const g=new T.Group(),dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);let nx=-dz/len,nz=dx/len;if(inside([(a[0]+b[0])/2+nx*.1,(a[1]+b[1])/2+nz*.1],p)){nx=-nx;nz=-nz;}g.position.set((a[0]+b[0])/2,0,(a[1]+b[1])/2);g.rotation.y=Math.atan2(nx,nz);parent.add(g);return {g,len};}
+function facadeFrame(parent:T.Group,a:Point,b:Point,p:Point[]){const g=new T.Group(),dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);let nx=-dz/len,nz=dx/len;if(inside([(a[0]+b[0])/2+nx*.1,(a[1]+b[1])/2+nz*.1],p)){nx=-nx;nz=-nz;}g.position.set((a[0]+b[0])/2,0,(a[1]+b[1])/2);g.rotation.y=Math.atan2(nx,nz);rigidBuilding(g,g.position.x,g.position.z);parent.add(g);return {g,len};}
 
 export function makeGeoWorld():World{
  seed=711;const masonry=architecturalMaterials();const group=new T.Group(),snow=new T.Group(),autumn=new T.Group(),works=new T.Group(),snowbank=new T.Group();group.add(autumn,snow,works,snowbank);
@@ -106,7 +107,7 @@ export function makeGeoWorld():World{
  for(let x=-910;x<930;x+=6)strip(tile(x,0),[[x,queenZ(x)],[x+2.7,queenZ(x+2.7)]],.09,.045,material(0xc7b771));
  // Crosswalks are attached to real named junctions.
  const junctions=new Map<string,{p:Point;side:number}>();for(const r of GEO.roads.filter(r=>r.name&&r.name!=='Queen Street East'&&['secondary','tertiary','residential'].includes(r.kind))){for(const p of r.p)if(Math.abs(p[1]-queenZ(p[0]))<1.2&&p[0]>-910&&p[0]<545)junctions.set(r.name,{p,side:r.p.reduce((sum,q)=>sum+q[1],0)/r.p.length<p[1]?-1:1});}
- for(const [name,{p,side}] of junctions){const g=tile(...p);if(name!=='Logan Avenue')for(const dx of [-7,7]){strip(g,[[p[0]+dx,p[1]-5.3],[p[0]+dx,p[1]+5.3]],.35,.047,material(0xe1dfcf));}const pole=box(g,p[0]+6,2.4,p[1]+side*6.7,.10,4.8,.10,0x828a88);void pole;const s=sign(g,name.replace('Street','St').replace('Avenue','Ave'),'',p[0]+6,4.2,p[1]+side*6.7,1.48,.30,'#255777','#f0f1e4','Arial');s.rotation.y=.0;}
+ for(const [name,{p,side}] of junctions){const g=tile(...p);if(name!=='Logan Avenue')for(const dx of [-7,7]){strip(g,[[p[0]+dx,p[1]-5.3],[p[0]+dx,p[1]+5.3]],.35,.047,material(0xe1dfcf));}const signZ=p[1]+side*(name==='De Grassi Street'?7.5:6.7);const pole=box(g,p[0]+6,2.4,signZ,.10,4.8,.10,0x828a88);void pole;if(name==='De Grassi Street')obstacles.push({x:p[0]+6,z:signZ,w:.15,d:.15,h:4.8,tag:'De Grassi street-sign pole'});const s=sign(g,name.replace('Street','St').replace('Avenue','Ave'),'',p[0]+6,4.2,signZ,1.48,.30,'#255777','#f0f1e4','Arial');s.rotation.y=.0;}
  // Yellow Ontario signal heads identify the major Queen junctions.
  for(const [name,{p}] of junctions){if(!['River Street','Broadview Avenue','Carlaw Avenue'].includes(name))continue;const g=detail(...p);for(const side of [-1,1]){const x=p[0]+side*7,z=p[1]+side*6.3;rod(g,V(x,0,z),V(x,5.5,z),.085,0x707d7d);rod(g,V(x,5.4,z),V(x,5.4,z-side*2.1),.05,0x707d7d);const head=new T.Group();head.position.set(x,4.86,z-side*2.1);head.rotation.y=side>0?Math.PI/2:-Math.PI/2;g.add(head);box(head,0,0,0,.32,1.08,.20,0xc4a745);box(head,0,0,.105,.26,.98,.04,0x333d3d);for(let k=0;k<3;k++){const y=.32-k*.32,disc=new T.Mesh(new T.CircleGeometry(.095,16),material(k===2?0x43886e:k===0?0x632f27:0x706140));disc.position.set(0,y,.133);head.add(disc);const hood=new T.Mesh(new T.CylinderGeometry(.11,.11,.16,12,1,true,0,Math.PI),material(0x404b49));hood.rotation.x=Math.PI/2;hood.position.set(0,y,.20);head.add(hood);}}}
  // Building volumes are the actual City polygons. Heights are City-derived roof envelopes.
@@ -116,7 +117,7 @@ export function makeGeoWorld():World{
  // Remove each parcel-authored frontage from its former union. Apply this once
  // per source building, never once per roof part (which would duplicate it).
  const background=GEO.buildings.flatMap(b=>Object.hasOwn(STREET.remainders,String(b.id))?STREET.remainders[String(b.id)].map(p=>({...b,...p})):RENDER_BUILDINGS.filter(part=>part.id===b.id));
- for(const b of background){if(VIDEO_MASS_IDS.has(b.id)||RIVER_AUTHORED.has(b.id))continue;const g=tile((b.bounds[0]+b.bounds[2])/2,(b.bounds[1]+b.bounds[3])/2);let height=HERITAGE_HEIGHTS[b.id]??b.h;
+ for(const b of background){if(VIDEO_MASS_IDS.has(b.id)||RIVER_AUTHORED.has(b.id))continue;const cx=(b.bounds[0]+b.bounds[2])/2,cz=(b.bounds[1]+b.bounds[3])/2,g=rigidBuilding(new T.Group(),cx,cz);tile(cx,cz).add(g);let height=HERITAGE_HEIGHTS[b.id]??b.h;
   if(b.landmarks?.includes('bonjour'))height=7.94;if(b.landmarks?.includes('broadview'))height=18.6;if(b.landmarks?.includes('amber'))height=12.8;if(b.landmarks?.includes('mercury'))height=8.9;if(b.landmarks?.includes('dark-horse'))height=14.6;
   // OSM floor counts correct an attached row inheriting a neighbouring tower's
   // City roof maximum. Retain higher mapped buildings such as 875 Queen E.
@@ -135,7 +136,7 @@ export function makeGeoWorld():World{
   if(!hasNearDetail)continue;
   if(residential){
    const bw=b.bounds[2]-b.bounds[0],bd=b.bounds[3]-b.bounds[1],cx=(b.bounds[0]+b.bounds[2])/2,cz=(b.bounds[1]+b.bounds[3])/2,rg=detail(cx,cz);
-   const roof=new T.Shape();roof.moveTo(-bw/2-.17,0);roof.lineTo(0,1.8);roof.lineTo(bw/2+.17,0);roof.closePath();const roofGeo=new T.ExtrudeGeometry(roof,{depth:bd+.35,bevelEnabled:false,steps:1});const m=new T.Mesh(roofGeo,material(0x5e6060));m.position.set(cx,height,cz-bd/2-.17);m.castShadow=true;rg.add(m);box(rg,cx+bw*.24,height+1.2,cz-.2,.62,1.8,.70,0x9e7963);
+   const roof=new T.Shape();roof.moveTo(-bw/2-.17,0);roof.lineTo(0,1.8);roof.lineTo(bw/2+.17,0);roof.closePath();const roofGeo=new T.ExtrudeGeometry(roof,{depth:bd+.35,bevelEnabled:false,steps:1});const m=new T.Mesh(roofGeo,material(0x5e6060));m.position.set(cx,height,cz-bd/2-.17);m.castShadow=true;rigidBuilding(m,cx,cz);rg.add(m);rigidBuilding(box(rg,cx+bw*.24,height+1.2,cz-.2,.62,1.8,.70,0x9e7963),cx,cz);
   }
   for(let i=0;i<b.p.length;i++){const a=b.p[i],c=b.p[(i+1)%b.p.length],len=Math.hypot(c[0]-a[0],c[1]-a[1]);if(len<3.5)continue;const mid:Point=[(a[0]+c[0])/2,(a[1]+c[1])/2];if(Math.abs(mid[1])>120&&!b.landmarks)continue;
    const {g:f}=facadeFrame(detail(...mid),a,c,b.p),front=Math.abs(mid[1]-queenZ(mid[0]))<22&&Math.abs(a[1]-c[1])<len*.3;

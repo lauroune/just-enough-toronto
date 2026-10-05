@@ -1,3 +1,4 @@
+import {rigidBuilding} from './building-ground';
 import * as T from 'three';
 import {box,rod,material,sign} from './world';
 import {facadeBox} from './architecture';
@@ -19,7 +20,7 @@ export function buildRiverArchitecture(tile:Factory,detail:Factory,kit:ReturnTyp
  sf.name='Studio535 · 535 Queen St E';
  const ss=new T.Shape(studio.p.map(p=>new T.Vector2(p[0],-p[1]))),sg=new T.ExtrudeGeometry(ss,{depth:9.25,bevelEnabled:false});sg.rotateX(-Math.PI/2);
  const sp=sg.getAttribute('position'),sn=sg.getAttribute('normal'),su=sg.getAttribute('uv');for(let k=0;k<sp.count;k++)su.setXY(k,(Math.abs(sn.getX(k))>.5?sp.getZ(k):sp.getX(k))/1.4,sp.getY(k)/1.4);
- const sm=new T.Mesh(sg,red);sm.castShadow=sm.receiveShadow=true;tile(-916,25).add(sm);
+ const sm=new T.Mesh(sg,red);sm.castShadow=sm.receiveShadow=true;tile(-916,25).add(rigidBuilding(sm,sf.position.x,sf.position.z));
  for(const x of [-sw*.33,0,sw*.33]){
   for(const dx of [-.72,.72]){pane(sf,x+dx,7.11,1.19,2.15,.15,0x303a38,1,false);box(sf,x+dx,7.36,.255,1.19,.06,.08,grey);}
   box(sf,x,8.34,.14,2.98,.28,.25,stone);

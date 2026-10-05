@@ -85,7 +85,7 @@ export function buildOntarioLine(detail:Factory,obstacles:Obstacle[],parent:T.Gr
  // Finished concrete guideway continues through the modelled corridor.
  for(let k=1;k<ONTARIO_PATH.length;k++){
   const a=ONTARIO_PATH[k-1],b=ONTARIO_PATH[k],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),mid:Point=[(a[0]+b[0])/2,(a[1]+b[1])/2];
-  const part=new T.Group();part.position.set(...[mid[0],0,mid[1]] as [number,number,number]);part.rotation.y=Math.atan2(dx,dz);detail(...mid).add(part);
+  const part=new T.Group();if(Math.abs(mid[1])<78){part.userData.terrainRigid=true;part.userData.terrainAnchor=[s.x,s.z];}part.position.set(...[mid[0],0,mid[1]] as [number,number,number]);part.rotation.y=Math.atan2(dx,dz);detail(...mid).add(part);
   box(part,0,5.68,0,19,1.05,len+.1,0xb9b8aa);
   for(const x of [-6.25,6.25]){box(part,x,6.23,0,3.5,.15,len,0x99988b);for(const off of [-.72,.72])box(part,x+off,6.38,0,.08,.08,len,0x879299);}
   // Railside noise wall with a transparent upper band.

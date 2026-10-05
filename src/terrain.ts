@@ -25,6 +25,16 @@ export function groundHeight(x:number,z:number){
  const underpass=smooth((x+40)/20)*smooth((120-x)/20)*smooth((28-Math.abs(z-1.06))/17);
  h+=(railGrade(x)-h)*underpass;
  h-=roadDatum;
+ // The completed station removes the old embankment at its entrances. Keep
+ // its structural footprint and south plaza on the same level foundation;
+ // blend outside the finished works, while preserving Queen's through grade.
+ // This is interpreted future grading, not an as-built elevation survey.
+ const c=1/Math.sqrt(1+.375*.375),n=-.375*c;
+ const sx=(x-21)*c-z*n,sz=(x-21)*n+z*c;
+ const headhouses=smooth((19-Math.abs(sx))/4)*smooth((82-Math.abs(sz))/10);
+ const plaza=smooth((x+34)/9)*smooth((10-x)/9)*smooth((z-8)/3)*smooth((68-z)/10);
+ const finished=Math.max(headhouses,plaza)*smooth((Math.abs(z)-10)/4);
+ h+=(railGrade(21)-roadDatum-h)*finished;
  const border=Math.min(x-raw.left,raw.left+(raw.cols-1)*raw.step-x,z-raw.top,raw.top+(raw.rows-1)*raw.step-z),t=clamp(border/100,0,1);
  return t===0?0:h*t*t*(3-2*t);
 }

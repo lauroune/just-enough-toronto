@@ -1,3 +1,4 @@
+import {rigidBuilding} from './building-ground';
 import * as T from 'three';
 import {box,rod,material,sign} from './world';
 import {facadeBox} from './architecture';
@@ -15,7 +16,7 @@ export function photoUV(q:Point[],u:number,v:number):Point{
  return [((b[0]-a[0]+g*b[0])*u+(d[0]-a[0]+h*d[0])*v+a[0])/w,((b[1]-a[1]+g*b[1])*u+(d[1]-a[1]+h*d[1])*v+a[1])/w];
 }
 export function buildHeritage(detail:Factory,m:Masonry,glass:T.MeshStandardMaterial,kit:ReturnType<typeof buildStreetArchitecture>){
- const face=(x:number,z:number,yaw=0)=>{const g=new T.Group();g.position.set(x,0,z);g.rotation.y=yaw;detail(x,z).add(g);return g;};
+ const face=(x:number,z:number,yaw=0)=>{const g=new T.Group();g.position.set(x,0,z);g.rotation.y=yaw;rigidBuilding(g,x,z);detail(x,z).add(g);return g;};
  const line=(g:T.Group,a:number[],b:number[],r:number,c:number)=>rod(g,new T.Vector3(a[0],a[1],a[2]),new T.Vector3(b[0],b[1],b[2]),r,c);
  const stone=material(0xbeb8a3),stoneLight=0xc8c3af;
  function column(g:T.Group,x:number,z:number,base:number,h:number,r:number){

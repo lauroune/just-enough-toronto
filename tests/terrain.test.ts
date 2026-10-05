@@ -65,3 +65,25 @@ test('rigid station sign stays horizontal on a slope, including its reverse face
  assert.deepEqual(Array.from(sign.geometry.getAttribute('position').array),original);
  for(const mesh of [sign,reverse]){const p=mesh.geometry.getAttribute('position'),a=new T.Vector3().fromBufferAttribute(p,0).applyMatrix4(mesh.matrixWorld),b=new T.Vector3().fromBufferAttribute(p,1).applyMatrix4(mesh.matrixWorld);assert(Math.abs(a.y-b.y)<.0001);}
 });
+
+test('separate building facades and roof share one rigid foundation instead of twisting with contours',async()=>{
+ const T=await import('three'),{drapeStatic}=await import('../src/terrain-geometry'),{rigidBuilding}=await import('../src/building-ground');
+ const root=new T.Group(),anchor:[number,number]=[25,-200];
+ const front=rigidBuilding(new T.Group(),25,-200,anchor),side=rigidBuilding(new T.Group(),25,-220,anchor);
+ front.position.set(25,0,-200);side.position.set(25,0,-220);side.rotation.y=Math.PI/2;root.add(front,side);
+ for(const g of [front,side]){const wall=new T.Mesh(new T.BoxGeometry(20,8,.3),new T.MeshBasicMaterial());wall.position.y=4;g.add(wall);}
+ root.updateMatrixWorld(true);const originals=[front,side].map(g=>g.children[0].matrixWorld.clone());
+ drapeStatic(root,new Set());root.updateMatrixWorld(true);
+ for(const [i,g] of [front,side].entries()){
+  const wall=g.children[0] as InstanceType<typeof T.Mesh>,p=wall.geometry.getAttribute('position');
+  for(let k=0;k<p.count;k++){const before=new T.Vector3().fromBufferAttribute(p,k).applyMatrix4(originals[i]),after=new T.Vector3().fromBufferAttribute(p,k).applyMatrix4(wall.matrixWorld);assert(Math.abs(after.y-before.y-groundHeight(...anchor))<1e-5);assert.equal(after.x,before.x);assert.equal(after.z,before.z);}
+ }
+});
+
+
+test('completed station doors and plaza use the foundation datum instead of the former embankment',async()=>{
+ const {stationPoint}=await import('../src/ontario-line');const datum=groundHeight(21,0);
+ for(const z of [-21.1,22.1])for(const x of [-11.06,-12,-14]){const p=stationPoint(x,z);assert(Math.abs(groundHeight(...p)-datum)<.015,`door at ${p}`);}
+ for(let x=-24;x<=0;x+=2)for(let z=15;z<57;z+=2)assert(Math.abs(groundHeight(x,z)-datum)<.015);
+ for(let x=-40;x<40;x+=2)for(let z=8;z<75;z+=2)assert(Math.abs(groundHeight(x+.001,z)-groundHeight(x-.001,z))<.01);
+});

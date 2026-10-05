@@ -137,4 +137,4 @@ document.addEventListener('visibilitychange',()=>{void sound.visibility(document
 if(new URLSearchParams(location.search).has('debug'))(window as any).__ENOUGH__={getState:()=>({chapter,mode,brief,checks:[...checks],attempts,unlocked,result,briefOpen,near}),scene:()=>town?.diagnostics(),bounds:()=>town?.collisionBounds(),skyline:()=>town?.skylineReference(),sound:()=>sound.diagnostics()};
 render();
 about();
-if(import.meta.env.DEV&&new URLSearchParams(location.search).has('capture')){(window as any).__ENOUGH_CAPTURE__=(shot:Parameters<Neighbourhood['captureFrame']>[0])=>town?.captureFrame(shot);(window as any).__ENOUGH_CAPTURE_STEP__=(dt:number)=>town?.captureStep(dt);}
+if(import.meta.env.DEV&&new URLSearchParams(location.search).has('capture')){(window as any).__ENOUGH_CAPTURE__=(shot:Parameters<Neighbourhood['captureFrame']>[0])=>town?.captureFrame(shot);(window as any).__ENOUGH_CAPTURE_STEP__=(dt:number,lens?:Parameters<Neighbourhood['captureStep']>[1])=>town?.captureStep(dt,lens);}

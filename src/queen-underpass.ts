@@ -6,7 +6,7 @@ import type {Obstacle} from './motion';
 // on the east. Metrolinx April2026 rendering replaces the former masonry arcade.
 export const QUEEN_UNDERPASS={west:8,east:66,skew:-.375,centerZ:1.06,arcade:6.7,outer:10,rail:6.38};
 export function buildQueenUnderpass(parent:T.Group,obstacles:Obstacle[],paving:T.Material){
- const g=new T.Group();parent.add(g);const q=QUEEN_UNDERPASS;
+ const g=new T.Group();g.userData.terrainRigid=true;g.userData.terrainAnchor=[48,1.06];parent.add(g);const q=QUEEN_UNDERPASS;
  const shift=(x:number,z:number)=>x+z*q.skew;
  // Open sidewalks continue below the bridge without the historical arcade.
  for(const side of [-1,1]){const z=q.centerZ+side*8.05;const m=groundBox(g,shift(37,z),.035,z,61,.04,3.2,0xffffff);m.material=paving as T.MeshStandardMaterial;}

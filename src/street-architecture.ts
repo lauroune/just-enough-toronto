@@ -1,3 +1,4 @@
+import {rigidBuilding} from './building-ground';
 import * as T from 'three';
 import {box,rod,material} from './world';
 import {facadeBox} from './architecture';
@@ -96,12 +97,12 @@ export function buildStreetArchitecture(tile:Factory,detail:Factory,far:Factory,
   for(let k=0;k<4;k++)box(g,entry,.08+k*.105,d+(3-k)*.25,1.2,.16,.30,0x8d8d80);
  }
  for(const [index,u] of STREET.units.entries()){
-  const p=elevation(u),parent=tile(...u.front),mat=p.cladding?cladding(p.brick):brick(p.brick),root=new T.Group();root.name=u.address;root.position.set(u.front[0],0,u.front[1]);root.rotation.y=u.yaw;detail(...u.front).add(root);
+  const p=elevation(u),parent=tile(...u.front),mat=p.cladding?cladding(p.brick):brick(p.brick),root=new T.Group();rigidBuilding(root,...u.front,u.front);root.name=u.address;root.position.set(u.front[0],0,u.front[1]);root.rotation.y=u.yaw;detail(...u.front).add(root);
   // Roof silhouettes survive detail culling; the street must not become a row
   // of flat blocks when it is viewed from the next intersection.
-  const silhouette=new T.Group();silhouette.position.copy(root.position);silhouette.rotation.copy(root.rotation);parent.add(silhouette);
+  const silhouette=rigidBuilding(new T.Group(),...u.front,u.front);silhouette.position.copy(root.position);silhouette.rotation.copy(root.rotation);parent.add(silhouette);
   if(u.address==='893 Queen St E')continue; // Ground model follows the corrected889–899 split.
-  parent.add(extrusion(u,p.eave,mat));const w=u.width,depth=Math.max(3,Math.min(u.depth,22));
+  parent.add(rigidBuilding(extrusion(u,p.eave,mat),...u.front,u.front));const w=u.width,depth=Math.max(3,Math.min(u.depth,22));
   if(VIDEO_UNIT_ADDRESSES.has(u.address))continue;
   const g=root;box(g,0,.21,-.05,w,.42,.16,0x7c796e);
   if(p.family==='bend-terrace'){
@@ -265,14 +266,14 @@ export function buildStreetArchitecture(tile:Factory,detail:Factory,far:Factory,
    box(g,w/2-.13,p.eave/2,.12,.06,p.eave,.07,0x888d84);box(g,-w/2+.35,1.33,.13,.22,.31,.13,0x878c80);line(g,[-w/2+.35,.1,.16],[-w/2+.35,1.25,.16],.016,0x666e66);
   }
   // A lightweight window layer remains after the detailed facade is culled.
-  const distant=new T.Group();distant.position.copy(root.position);distant.rotation.copy(root.rotation);far(...u.front).add(distant);
+  const distant=rigidBuilding(new T.Group(),...u.front,u.front);distant.position.copy(root.position);distant.rotation.copy(root.rotation);far(...u.front).add(distant);
   for(let floor=0;floor<p.floors;floor++)for(let k=0;k<p.windows;k++){const pane=new T.Mesh(new T.PlaneGeometry(Math.min(1.25,w/p.windows*.54),1.8),interiors[(index+k)%4]);pane.position.set((k+.5)*w/p.windows-w/2,1.85+floor*3.05,.09);distant.add(pane);}
   const labelGeometry=new T.PlaneGeometry(.48,.18),uv=labelGeometry.getAttribute('uv'),rows=Math.ceil(STREET.units.length/16);for(let k=0;k<uv.count;k++)uv.setXY(k,(index%16+uv.getX(k))/16,1-(Math.floor(index/16)+1-uv.getY(k))/rows);const label=new T.Mesh(labelGeometry,labelMat);label.position.set(p.family==='shop'?w*.31:p.family==='cottage'&&u.number==='52'?0:(p.entrySide||-1)*w*.28,2.79,.32);root.add(label);
  }
  const byId=new Map(STREET.units.map(u=>[u.id,u]));
  for(const face of frontages.faces){
   if((face.id===5436445&&face.mid[1]<-50)||(face.id===5436204&&face.mid[1]>-57))continue; // Video-authored service wall / mostly blank north return.
-  const u=byId.get(face.id)!;if(VIDEO_UNIT_ADDRESSES.has(u.address))continue;const p=elevation(u),g=new T.Group();g.position.set(face.mid[0],0,face.mid[1]);g.rotation.y=face.yaw;detail(...face.mid as Point).add(g);
+  const u=byId.get(face.id)!;if(VIDEO_UNIT_ADDRESSES.has(u.address))continue;const p=elevation(u),g=new T.Group();rigidBuilding(g,...u.front,u.front);g.position.set(face.mid[0],0,face.mid[1]);g.rotation.y=face.yaw;detail(...face.mid as Point).add(g);
   if(p.blankSide){box(g,0,.56,.06,face.length,1.12,.09,0x444a44);box(g,0,1.18,.09,face.length,.07,.16,0x777d6d);box(g,-face.length*.44,p.eave/2,.11,.072,p.eave,.082,0x4e554d);cornice(g,face.length,p.eave-.16,p.trim);continue;}
   const count=Math.min(4,Math.max(1,Math.floor(face.length/4.2))),floors=p.floors;
   for(let floor=0;floor<floors;floor++)for(let k=0;k<count;k++){const x=(k+.5)*face.length/count-face.length/2;window(g,x,1.85+floor*2.95,.83,1.48,p.trim,.09,(u.id+k)%4);}
@@ -285,12 +286,12 @@ export function buildStreetArchitecture(tile:Factory,detail:Factory,far:Factory,
  const streetLines=STREET.roads.filter(r=>r.name!=='Queen Street East').flatMap(r=>r.p.slice(1).map((p,i)=>[r.p[i],p]));
  for(const b of STREET.north){
   const c:Point=[(b.bounds[0]+b.bounds[2])/2,(b.bounds[1]+b.bounds[3])/2],church=b.id===421419,school=b.id===398383,height=Math.max(3,Math.min(b.h,13)),wall=church?stone:school?concrete:m.aged;
-  tile(...c).add(extrusion(b,height,wall));
+  tile(...c).add(rigidBuilding(extrusion(b,height,wall),...c));
   for(let i=0;i<b.p.length;i++){
    const a=b.p[i],d=b.p[(i+1)%b.p.length],dx=d[0]-a[0],dz=d[1]-a[1],length=Math.hypot(dx,dz);if(length<3.5)continue;
    const mid:Point=[(a[0]+d[0])/2,(a[1]+d[1])/2];if(Math.min(...streetLines.map(([a,b])=>segmentDistance(mid,a,b)))>24)continue;
    let nx=-dz/length,nz=dx/length;if(inside([mid[0]+nx*.10,mid[1]+nz*.10],b.p)){nx=-nx;nz=-nz;}
-   const g=new T.Group();g.position.set(mid[0],0,mid[1]);g.rotation.y=Math.atan2(nx,nz);detail(...mid).add(g);
+   const g=new T.Group();rigidBuilding(g,...c);g.position.set(mid[0],0,mid[1]);g.rotation.y=Math.atan2(nx,nz);detail(...mid).add(g);
    if(church){
     cornice(g,length,12.65,0xc5c6b7,true);box(g,0,2.15,.10,length,.18,.32,0xa6a99c);
     const count=Math.max(1,Math.round(length/4.9));for(let k=0;k<count;k++){const x=(k+.5)*length/count-length/2;arch(g,x,7.15,1.33,3.25,0xb9bdac,stone);window(g,x,1.15,.91,1.25,0x848d83,.10,1);if(k%2===0){box(g,x,6.60,.33,2.15,.23,.83,0xb9bdaf);for(const q of [-.8,.8])box(g,x+q,6.32,.21,.18,.37,.4,0xa8ad9f);}}

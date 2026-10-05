@@ -1,6 +1,14 @@
 import * as T from 'three';
 import {SSAOPass} from 'three/addons/postprocessing/SSAOPass.js';
 
+// AO clips its depth range for precision, but must match the beauty lens in X/Y.
+export function syncContactProjection(source:T.PerspectiveCamera,target:T.PerspectiveCamera){
+ target.fov=source.fov;target.aspect=source.aspect;target.zoom=source.zoom;target.updateProjectionMatrix();
+ target.projectionMatrix.elements[8]=source.projectionMatrix.elements[8];
+ target.projectionMatrix.elements[9]=source.projectionMatrix.elements[9];
+ target.projectionMatrixInverse.copy(target.projectionMatrix).invert();
+}
+
 // A short-range contact pass makes sills, cornices, tyres and wall bases read
 // as geometry. It does not change source geometry or pretend to add scan data.
 export class ContactOcclusion {
@@ -20,7 +28,9 @@ export class ContactOcclusion {
  resize(width:number,height:number){this.normalCamera.aspect=this.camera.aspect;this.normalCamera.updateProjectionMatrix();this.pass.setSize(Math.max(1,Math.round(width*.70)),Math.max(1,Math.round(height*.70)));}
  render(renderer:T.WebGLRenderer,target?:T.WebGLRenderTarget){
   this.normalCamera.position.copy(this.camera.position);this.normalCamera.quaternion.copy(this.camera.quaternion);
-  if(this.normalCamera.fov!==this.camera.fov){this.normalCamera.fov=this.camera.fov;this.normalCamera.updateProjectionMatrix();this.pass.ssaoMaterial.uniforms.cameraProjectionMatrix.value.copy(this.normalCamera.projectionMatrix);this.pass.ssaoMaterial.uniforms.cameraInverseProjectionMatrix.value.copy(this.normalCamera.projectionMatrixInverse);}
+  syncContactProjection(this.camera,this.normalCamera);
+  this.pass.ssaoMaterial.uniforms.cameraProjectionMatrix.value.copy(this.normalCamera.projectionMatrix);
+  this.pass.ssaoMaterial.uniforms.cameraInverseProjectionMatrix.value.copy(this.normalCamera.projectionMatrixInverse);
   const hidden=this.excluded.filter(o=>o.visible);for(const o of hidden)o.visible=false;
   const autoShadow=renderer.shadowMap.autoUpdate,autoReset=renderer.info.autoReset;renderer.shadowMap.autoUpdate=false;renderer.info.autoReset=false;
   try{this.pass.renderToScreen=!target;this.pass.render(renderer,this.pass.ssaoRenderTarget,target||this.pass.ssaoRenderTarget,0,false);}

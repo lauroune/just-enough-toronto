@@ -71,6 +71,19 @@ Mike Murchison’s own photo library and recorded videos are credited as inputs.
 
 ### Trailer
 
-The post features a 1080p loop captured from the running game, including a real brief-editing interaction. With the development server on port 5178 and FFmpeg on your PATH, run `FILM_DIR=evidence/trailer node scripts/capture-film.mjs`, then `node scripts/capture-gameplay-film.mjs`, and `node scripts/assemble-trailer.mjs`. The last step writes the web video and poster into `site/assets/`. The title uses the same self-hosted Bricolage Grotesque face as the game; Source Serif 4 supplies the complementary serif.
+The post features a 29-second, 1080p30 loop captured from the running game at 4K internal resolution. It shows genuine brief editing, route travel, and a successful delivery. The existing Skip travel control shortens the trip between edits. Cinematic lenses, larger presentation of the real UI, and captions are recording-only; they do not change game rules or player controls.
+
+With the development server on port 5178, Chrome installed, and FFmpeg on your PATH:
+
+```sh
+node scripts/capture-film.mjs
+node scripts/capture-gameplay-film.mjs
+node scripts/assemble-trailer.mjs
+node scripts/verify-trailer.mjs
+```
+
+Review `evidence/trailer/` before publishing. `PUBLISH_TRAILER=1 node scripts/assemble-trailer.mjs` copies the approved web video and poster to `site/assets/`. `DESKTOP_COPY` can specify a separate high-quality MP4 path. The output is silent for looping web and sound-off social playback. The ending and opening use consecutive frames of the same hero take, with a continuous title instead of a scene dissolve.
+
+The title uses the same self-hosted Bricolage Grotesque face as the game, with Source Serif 4 as its companion. The scorecard measures composition, rhythm, gameplay clarity, visual integrity, typography and loop finish; scores are editorial judgments rather than audience testing or survey accuracy claims.
 
 The personal site uses four 960px transparent AVIF paint textures. `scripts/build-paint.mjs` embeds them and the homepage fonts in a content-hashed, render-blocking stylesheet so they appear together without late asset requests. `node scripts/verify-paint.mjs` checks cold-load filmstrip frames, request timing, Retina rendering, mobile layout and fixed paint positioning.
