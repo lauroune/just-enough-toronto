@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Just Enough — Mike Murchison</title>
+  <meta name="description" content="I made a little game about how much context is enough. A delivery robot, a Toronto neighbourhood, and a conversation that became something you can play.">
+  <link rel="icon" href="/site-assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/site-assets/site.css">
+  <link rel="canonical" href="https://murch.org/enough/">
+  <meta property="og:site_name" content="Mike Murchison">
+  <meta property="og:url" content="https://murch.org/enough/">
+  <meta property="og:title" content="Just Enough — A Game About Context Engineering">
+  <meta property="og:description" content="A Toronto neighbourhood, a delivery robot, and a question: how much context is enough?">
+  <meta property="og:image" content="https://murch.org/site-assets/just-enough-film-poster.jpg">
+</head>
+<body class="personal-home personal-post">
+<a class="skip" href="#main">Skip to content</a>
+<div class="paint-field" aria-hidden="true">
+  <div class="paint-layer paint-ochre"><span></span></div>
+  <div class="paint-layer paint-pine"><span></span></div>
+  <div class="paint-layer paint-blue"><span></span></div>
+  <div class="paint-layer paint-coral"><span></span></div>
+</div>
+<main class="article post" id="main">
+  <nav class="post-nav" aria-label="Back to homepage"><a href="/">← Mike Murchison</a></nav>
+  <header class="post-heading">
+    <h1>Just Enough</h1>
+    <p class="post-subtitle">A Game About Context Engineering.</p>
+  </header>
+  <p class="post-intro">I spent the weekend building a little game with Astra, starting with a question from a conversation with Rinoc: how much context is enough?</p>
+  <div class="post-play">
+    <a class="play-link" href="/justenough/">Play Just Enough <span aria-hidden="true">→</span></a>
+    <p>Three deliveries · about 8–12 minutes · best on a desktop</p>
+  </div>
+  <figure>
+    <video class="game-film" autoplay muted loop playsinline controls preload="metadata" poster="/site-assets/just-enough-film-poster.jpg" width="1920" height="1080" aria-label="A silent tour of Just Enough: Pip on Queen Street East at golden hour, the Don bridge, and the future Leslieville Station.">
+      <source src="/site-assets/just-enough-film.mp4" type="video/mp4">
+      <a href="/site-assets/just-enough-film.mp4">Watch the game film</a>
+    </video>
+    <figcaption>A little tour of Queen East at golden hour. Captured in the game.</figcaption>
+  </figure>
+  <div class="article-copy">
+    <h2>Where it started</h2>
+    <p>Rinoc Johnson, who runs much of our internal operations at Ada, and I were talking about compression, context windows, and how much information we need to do something well. Leaving things out, we realised, is part of what makes a description useful.</p>
+    <p>We talked about π. Sometimes 3.14 is enough. Sometimes you need more precision. What matters depends on what you’re trying to do.</p>
+    <p>Intelligence isn’t just a context maximization problem. Too much information can be as unhelpful as too little, depending on the task. Part of intelligence is figuring out what deserves your attention. I wanted to make something where you could feel that difference.</p>
+
+    <h2>What Pip needs</h2>
+    <p>You help Pip, a friendly delivery robot, carry pastries through Riverside and Leslieville. Pip knows the map. You choose up to four facts for its brief, send it on a delivery, and see what happens.</p>
+    <p>A closed passage matters. A favourite shop’s awning might not. On the next delivery, Pip pulls a wider cart. Then snow changes the route. You can revise the brief and try again.</p>
+    <p>Too little context leaves gaps. Too much can crowd out what matters. Choosing a useful brief is a small exercise in compression: keeping the details that change a decision.</p>
+    <p>It’s a simple model of a question I’m interested in with AI: how do we help a system use the right information for the task in front of it? The game uses fixed rules. The intelligence it asks you to bring is judgment about what to keep and when to update it.</p>
+
+    <h2>Making a familiar place</h2>
+    <p>I gave Astra access to my photo library, videos I recorded around Leslieville, and research across the web. We used public maps and architectural references to reconstruct Queen Street East, from River to Carlaw, with nearby streets, shops, murals, and small details I know.</p>
+    <p>I’d notice a wrong roof or a missing mural, supply another view, and we’d work on it together. There’s still plenty to improve. That back-and-forth has been an interesting part of making it.</p>
+    <p>The game also imagines the Ontario Line finished. Leslieville Station, at Queen and De Grassi, is based on <a href="https://www.metrolinx.com/en/projects-and-programs/ontario-line/what-were-building/leslieville-station">Metrolinx’s published renderings</a>. Those designs can still change, but I like that the game offers a small window into a possible future.</p>
+    <p>AI is making games much more accessible to build. I think they’ll become valuable teaching tools: a way to explore an idea through choices and consequences. This began as a conversation. Now it’s a place you can wander through and a problem you can try to solve.</p>
+
+    <h2 id="build-on-it">Build on it</h2>
+    <p>The <a href="https://github.com/mimurchison/just-enough-toronto">game code is open source</a>. I’d love people to add their own Toronto blocks, improve the buildings, or make new stories and deliveries. Maps, fonts, and artwork have their own terms, listed in the repository.</p>
+    <p>You can <a href="https://github.com/mimurchison/just-enough-toronto">get the code on GitHub</a>, <a href="/enough/build/">start with a guide to expanding Toronto</a>, or <a href="/justenough/">try a delivery with Pip</a>.</p>
+  </div>
+  <aside class="post-note" aria-label="The bridge and source credits">
+    <p>“This river I step in is not the river I stand in.” Eldon Garnet’s <a href="https://riverside-to.com/riverside-public-art-time-and-a-clock/">words on the Don bridge</a> became a thread through the game. What’s useful changes as the world does.</p>
+    <a href="/justenough/sources.html#river-story">Credits and sources <span aria-hidden="true">↗</span></a>
+  </aside>
+  <footer>
+    <a href="https://www.linkedin.com/in/mikemurchison/">LinkedIn <span aria-hidden="true">↗</span></a>
+    <a href="https://x.com/mimurchison">X <span aria-hidden="true">↗</span></a>
+    <a href="https://github.com/mimurchison">GitHub <span aria-hidden="true">↗</span></a>
+    <span class="location">Toronto, Canada</span>
+  </footer>
+</main>
+<script>const film=document.querySelector(".game-film");if(matchMedia("(prefers-reduced-motion: reduce)").matches){film.autoplay=false;film.pause();}</script>
+</body>
+</html>

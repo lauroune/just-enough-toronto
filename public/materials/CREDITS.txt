@@ -1,0 +1,103 @@
+Just Enough material assets — all bundled locally.
+
+Red Brick — Rob Tuytel / Poly Haven
+https://polyhaven.com/a/red_brick
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+1K colour / OpenGL normal / roughness converted from JPEG to WebP.
+
+Brick Wall 02 — Dimitrios Savva / Poly Haven
+https://polyhaven.com/a/brick_wall_02
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+1K colour / OpenGL normal / roughness converted from JPEG to WebP.
+
+Kloofendal 48d Partly Cloudy (Pure Sky) — Greg Zaal / Jarod Guest / Poly Haven
+https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+1K HDR. Lighting and sky only; not Toronto geography.
+
+Asphalt Floor — eye-candy.xyz / Poly Haven
+https://polyhaven.com/a/asphalt_floor
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+Unmodified 1K colour / OpenGL normal / roughness JPEGs.
+
+Asphalt 02 — Rob Tuytel / Poly Haven
+https://polyhaven.com/a/asphalt_02
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+Unmodified 1K colour / OpenGL normal / roughness JPEGs. Three metre repeat.
+Used for road and parking surfaces; replaces the brown Asphalt Floor material.
+
+Poulton Block Toronto — GTD Aquitaine, 1 November 2008
+https://commons.wikimedia.org/wiki/File:Poulton_Block_Toronto.jpg
+Public domain, released by the photographer. Original JPEG bundled unchanged.
+Projected onto only the top-storey facade surfaces in the 3D renderer.
+Historical image, not a claim of current condition.
+
+Other business and streetscape reference photographs are used for observation;
+they are not bundled. See /sources.html.
+
+Concrete Wall 007 — Charlotte Baglioni / Dario Barresi / Rico Cilliers
+https://polyhaven.com/a/concrete_wall_007
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+Unmodified 1K colour / OpenGL normal / roughness JPEGs; 2.2 metre repeat.
+Used for reconstructed Queen railway masonry, not a Toronto surface scan.
+
+Overcast Soil (Pure Sky) — Jarod Guest / Sergej Majboroda / Poly Haven
+https://polyhaven.com/a/overcast_soil_puresky
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+Unmodified 1K HDR, retained as a former lighting reference; not the current environment. This is not a Toronto sky capture.
+
+Tree Small02 leaf atlas — Rico Cilliers / Poly Haven
+https://polyhaven.com/a/tree_small_02
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+1K diffuse converted to JPEG, alpha unchanged. A leaf sample is composed into
+shared branch cards at runtime. Placement and canopy shapes follow local map
+points and video observations; the scan is not a botanical identification of
+Toronto trees. No full high-poly tree model is included.
+
+Toronto material patches — Mike Murchison (@mimurchison)
+Mike Murchison’s own photo library and recorded videos informed the local
+materials and architecture. Only cropped surface textures are bundled;
+original footage, audio, people and vehicle plates are not included.
+Camera colours and repeated approximate scale are not calibrated scans.
+
+Qwantani Sunset Pure Sky — Greg Zaal / Jarod Guest / Poly Haven
+https://polyhaven.com/a/qwantani_sunset_puresky
+CC0 https://creativecommons.org/publicdomain/zero/1.0/
+golden-hour.hdr: unmodified 1K HDR. Current golden-hour environment, rotated
+and intensity-adjusted. This is not a Toronto sky capture.
+Tree Small02 also supplies a runtime recoloured autumn atlas; the diffuse
+luminance and original alpha are retained. Tree colour/species are approximate.
+
+Local artwork reference:
+Photo and video references — Mike Murchison (@mimurchison).
+Runtime art patches: queen732-graffiti.webp and biskaabiiyaang-bear.webp.
+
+BISKAABIIYAANG,800 Queen Street East — Quentin “Que Rock” Commanda,2024.
+Official unobstructed long-wall photograph: Mural Routes,
+https://muralroutes.ca/mural/biskaabiiyaang/
+https://muralroutes.ca/wp-content/uploads/2025/03/BISKAABIIYAANG-1.jpg
+Perspective-rectified for the in-game reconstruction. Original artwork and photograph rights remain with their creators; not a CC0 asset.
+The current pastel cloud sky, lobed autumn leaf atlas and fallen leaves are authored in code. The CC0 HDR remains the reflection/lighting environment.
+
+V12 cloud structure:
+https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky
+Poly Haven, CC0. pastel-clouds.hdr is the unmodified2K HDR (5,451,493 bytes).
+The runtime shader grades its cloud structure into a peach/lavender palette.
+This is a sky treatment, not a Toronto geographic photograph.
+
+Completed Ontario Line architecture:
+Metrolinx Leslieville Station April2026 entrance renderings and July2025 aerial,
+used as visual references for authored geometry; no rendering is shipped as a
+world texture. The renderings are subject to change. See /sources.html.
+
+River of Life — full mural-bearing underpass wall
+Lead artist: Quentin “Que Rock” Commanda. Contributions: Alex “Vizsla” Bacon, Sadie Marshall. Mentorship: Shawni-Nodin Nanaokase.
+BIA photo: https://riverside-to.com/river-of-life-mural-celebration-highlights/
+Artist film: https://www.youtube.com/watch?v=Csu9fJejSAU
+Feature-aligned documentary projection and exposure matching. No generated artwork. 6144×1400 resampled documentary panorama, including expanded heron/fish/river sections. Source flare, alignment seams and small cropped extremities remain. Exact future wall extent is not surveyed.
+Original image and art rights remain with their creators. Not a CC0 asset. Full film and original reference images are not shipped.
+
+V14 supporting materials and context:
+De Grassi rubble stone: wall-only texture crop from Mike Murchison’s video.
+Source patch resampled to 512 square; not new native resolution. No people or plates.
+Surrounding neighbourhood:3,991 City of Toronto roof outlines and derived heights, baked into neighbourhood-backdrop.bin. Source: https://gis.toronto.ca/arcgis/rest/services/cot_geospatial3/FeatureServer/2 . Open Government Licence — Toronto. Distant surface colours are inferred; no detailed facade claim.
