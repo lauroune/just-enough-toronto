@@ -1,8 +1,31 @@
 import {cp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+import {buildPaintStylesheet} from './build-paint.mjs';
 // A separate output keeps the existing game preview and saved game intact.
 const out=resolve('dist-site');await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
 await cp('site/index.html',`${out}/index.html`);await cp('site/404.html',`${out}/404.html`);await cp('site/enough',`${out}/enough`,{recursive:true});await cp('site/assets',`${out}/site-assets`,{recursive:true});
+const paint=await buildPaintStylesheet();
+await writeFile(`${out}/site-assets/${paint.filename}`,paint.css);
+for(const path of ['index.html','enough/index.html']){
+ const html=await readFile(`${out}/${path}`,'utf8');
+ await writeFile(`${out}/${path}`,html.replace('/site-assets/paint-critical.css',`/site-assets/${paint.filename}`));
+}
+// Changed styles and film titles must also update immediately for returning
+// visitors whose browser still has the preceding release cached.
+const versions=new Map();
+for(const name of ['site.css','fonts.css','just-enough-film.mp4','just-enough-film-poster.jpg']){
+ const hash=createHash('sha256').update(await readFile(`site/assets/${name}`)).digest('hex').slice(0,12);
+ versions.set(`/site-assets/${name}`,`/site-assets/${name}?v=${hash}`);
+}
+for(const path of ['index.html','404.html','enough/index.html','enough/build/index.html']){
+ let html=await readFile(`${out}/${path}`,'utf8');
+ for(const [source,versioned] of versions)html=html.replaceAll(source,versioned);
+ await writeFile(`${out}/${path}`,html);
+}
+// The high-resolution AVIF originals are source assets; only their compact
+// critical stylesheet is requested by the page.
+await rm(`${out}/site-assets/acrylic-brushstrokes.png`,{force:true});
 await mkdir(`${out}/justenough`,{recursive:true});
 await cp('dist/index.html',`${out}/justenough/index.html`);
 await cp('public/favicon.svg',`${out}/justenough/favicon.svg`);

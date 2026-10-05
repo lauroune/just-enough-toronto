@@ -71,4 +71,6 @@ Mike Murchison’s own photo library and recorded videos are credited as inputs.
 
 ### Trailer
 
-The post features a 1080p loop captured from the running game, including a real brief-editing interaction. With the development server on port 5178 and FFmpeg on your PATH, run `FILM_DIR=evidence/trailer node scripts/capture-film.mjs`, then `node scripts/capture-gameplay-film.mjs`, and `node scripts/assemble-trailer.mjs`. The last step writes the web video and poster into `site/assets/`. The title uses the same self-hosted Lobster Two face as the game; Newsreader supplies the complementary serif.
+The post features a 1080p loop captured from the running game, including a real brief-editing interaction. With the development server on port 5178 and FFmpeg on your PATH, run `FILM_DIR=evidence/trailer node scripts/capture-film.mjs`, then `node scripts/capture-gameplay-film.mjs`, and `node scripts/assemble-trailer.mjs`. The last step writes the web video and poster into `site/assets/`. The title uses the same self-hosted Bricolage Grotesque face as the game; Source Serif 4 supplies the complementary serif.
+
+The personal site uses four 960px transparent AVIF paint textures. `scripts/build-paint.mjs` embeds them and the homepage fonts in a content-hashed, render-blocking stylesheet so they appear together without late asset requests. `node scripts/verify-paint.mjs` checks cold-load filmstrip frames, request timing, Retina rendering, mobile layout and fixed paint positioning.
