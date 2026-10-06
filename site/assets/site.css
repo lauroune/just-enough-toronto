@@ -32,6 +32,7 @@ footer a:hover{text-decoration:underline}
 .personal-home .home{z-index:auto}
 .personal-home{position:relative;isolation:isolate;min-height:100vh}
 .paint-field{position:absolute;pointer-events:none;z-index:2;inset:0;overflow:hidden;contain:strict}
+.paint-sides{display:none}
 /* One connected painted landscape. No CSS or baked-in cast shadows. */
 .paint-landscape{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max(100%,min(calc(100% + 260px),1840px));aspect-ratio:3/2;background-size:100% 100%;background-repeat:no-repeat;filter:none;box-shadow:none}
 .personal-home:not(.personal-post){min-height:max(1120px,min(1251px,calc(66.667vw + 198px)))}
@@ -63,12 +64,6 @@ footer a:hover{text-decoration:underline}
 .sources{font-size:13px;color:#617067;border-top:1px solid #e5eae7;padding-top:20px;margin-top:40px}
 .path{font:13px ui-monospace,monospace;background:#f0f4f1;padding:3px 6px;border-radius:3px}
 @media(min-width:1600px){.home{padding-top:112px}}
-@media(max-width:1199px){
- /* Move the whole painting below the text when the margins are too narrow. */
- .personal-home .home,.personal-post .post{padding-bottom:calc(100vw*2/3 + 46px)}
- .paint-landscape{width:100%}
- .personal-home:not(.personal-post){min-height:100vh}
-}
 @media(max-width:520px){.home{padding:86px 26px 115px}.hello{margin-bottom:25px}.hello h1{font-size:31px}.hello p{font-size:18px}.personal-copy{font-size:19px;line-height:1.65}.personal-copy p+p{margin-top:20px}.work{margin-top:32px}footer{gap:20px 23px;margin-top:27px}.location{flex-basis:100%;margin-left:0}.article{padding:32px 24px}.mast{margin-bottom:42px}.article-copy{margin-top:32px}body{font-size:19px}.article figure img{aspect-ratio:4/3}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
 
@@ -96,3 +91,27 @@ footer a:hover{text-decoration:underline}
 @media(max-width:520px){.post{padding:86px 26px 115px}.post-nav{margin-bottom:30px}.post .post-heading h1{font-size:31px}.post-subtitle{font-size:17px}.post-intro,.post .article-copy{font-size:19px;line-height:1.65}.post .article-copy h2{font-size:22px}.post figure img{aspect-ratio:3/2}.project-description{font-size:17px}}
 
 .article figure video{display:block;width:100%;height:auto;background:#e8c3a5;border-radius:3px;}
+
+/* Keep a readable middle column and painted side margins on smaller screens.
+   The same artwork is cropped into side panels without stretching its brushwork. */
+@media(max-width:1199px){
+ .personal-home{--paint-gutter:clamp(44px,15vw,180px);--side-height:min(100svh,850px);--side-width:calc(var(--side-height)*1.5)}
+ .personal-home:not(.personal-post){min-height:100vh}
+ .paint-sides{display:flex;justify-content:space-between;position:absolute;inset:0;z-index:1;pointer-events:none}
+ .paint-side{position:sticky;top:0;align-self:flex-start;width:var(--paint-gutter);height:var(--side-height);background-size:var(--side-width) var(--side-height);background-repeat:no-repeat}
+ .paint-city{background-position:calc(var(--paint-gutter)/2 - var(--side-width)*.119) bottom;mask-image:linear-gradient(to right,#000 calc(100% - 8px),transparent)}
+ .paint-trees{background-position:calc(var(--paint-gutter)/2 - var(--side-width)*.885) bottom;mask-image:linear-gradient(to left,#000 calc(100% - 8px),transparent)}
+ .paint-landscape{width:max(100%,var(--side-width));clip-path:inset(82% 0 0)}
+ .personal-home .home,.personal-post .post{width:calc(100% - var(--paint-gutter)*2 - 24px);max-width:640px;padding:64px 0 calc(var(--side-height)*.18 + 48px);overflow-wrap:break-word}
+ .personal-home .home{padding-top:clamp(64px,7.6667vw,92px)}
+ .hello h1,.post .post-heading h1{font-size:clamp(24px,3.5vw,36px)}
+ .hello p,.post-subtitle{font-size:clamp(16px,2vw,20px)}
+ .personal-copy,.post-intro,.post .article-copy{font-size:clamp(16px,2.15vw,21px);line-height:1.6}
+ .personal-copy p+p{margin-top:20px}
+ .project{gap:12px}
+ .project-description{font-size:clamp(15px,1.8vw,18px)}
+ .post .article-copy h2{font-size:clamp(20px,2.4vw,23px)}
+ .post-note{font-size:16px}
+ footer{gap:16px}
+ .location{flex-basis:100%;margin-left:0}
+}
