@@ -33,7 +33,7 @@ footer a:hover{text-decoration:underline}
 .personal-home{position:relative;isolation:isolate;min-height:100vh}
 .paint-field{position:absolute;pointer-events:none;z-index:2;inset:0;overflow:hidden;contain:strict}
 /* One connected painted landscape. No CSS or baked-in cast shadows. */
-.paint-landscape{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(calc(100% + 260px),1840px);aspect-ratio:3/2;background-size:100% 100%;background-repeat:no-repeat;filter:none;box-shadow:none}
+.paint-landscape{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max(100%,min(calc(100% + 260px),1840px));aspect-ratio:3/2;background-size:100% 100%;background-repeat:no-repeat;filter:none;box-shadow:none}
 .personal-home:not(.personal-post){min-height:max(1120px,min(1251px,calc(66.667vw + 198px)))}
 .personal-home .home{padding-bottom:150px}
 .personal-post .post{padding-bottom:340px}
@@ -65,8 +65,8 @@ footer a:hover{text-decoration:underline}
 @media(min-width:1600px){.home{padding-top:112px}}
 @media(max-width:1199px){
  /* Move the whole painting below the text when the margins are too narrow. */
- .personal-home .home,.personal-post .post{padding-bottom:calc(min(100vw,540px)*2/3 + 46px)}
- .paint-landscape{width:min(100%,540px)}
+ .personal-home .home,.personal-post .post{padding-bottom:calc(100vw*2/3 + 46px)}
+ .paint-landscape{width:100%}
  .personal-home:not(.personal-post){min-height:100vh}
 }
 @media(max-width:520px){.home{padding:86px 26px 115px}.hello{margin-bottom:25px}.hello h1{font-size:31px}.hello p{font-size:18px}.personal-copy{font-size:19px;line-height:1.65}.personal-copy p+p{margin-top:20px}.work{margin-top:32px}footer{gap:20px 23px;margin-top:27px}.location{flex-basis:100%;margin-left:0}.article{padding:32px 24px}.mast{margin-bottom:42px}.article-copy{margin-top:32px}body{font-size:19px}.article figure img{aspect-ratio:4/3}}
