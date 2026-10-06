@@ -14,6 +14,7 @@
     "example": "tsx examples/new-neighbourhood.ts"
   },
   "dependencies": {
+    "@chenglou/pretext": "^0.0.9",
     "@dimforge/rapier3d-compat": "^0.21.0",
     "three": "^0.180.0"
   },
@@ -22,6 +23,7 @@
     "@playwright/test": "^1.63.0",
     "@types/node": "^20.19.43",
     "@types/three": "^0.180.0",
+    "esbuild": "^0.28.2",
     "pngjs": "^7.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",

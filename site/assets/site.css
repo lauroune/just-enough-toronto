@@ -32,7 +32,6 @@ footer a:hover{text-decoration:underline}
 .personal-home .home{z-index:auto}
 .personal-home{position:relative;isolation:isolate;min-height:100vh}
 .paint-field{position:absolute;pointer-events:none;z-index:2;inset:0;overflow:hidden;contain:strict}
-.paint-sides{display:none}
 /* One connected painted landscape. No CSS or baked-in cast shadows. */
 .paint-landscape{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max(100%,min(calc(100% + 260px),1840px));aspect-ratio:3/2;background-size:100% 100%;background-repeat:no-repeat;filter:none;box-shadow:none}
 .personal-home:not(.personal-post){min-height:max(1120px,min(1251px,calc(66.667vw + 198px)))}
@@ -92,26 +91,35 @@ footer a:hover{text-decoration:underline}
 
 .article figure video{display:block;width:100%;height:auto;background:#e8c3a5;border-radius:3px;}
 
-/* Keep a readable middle column and painted side margins on smaller screens.
-   The same artwork is cropped into side panels without stretching its brushwork. */
-@media(max-width:1199px){
- .personal-home{--paint-gutter:clamp(44px,15vw,180px);--side-height:min(100svh,850px);--side-width:calc(var(--side-height)*1.5)}
- .personal-home:not(.personal-post){min-height:100vh}
- .paint-sides{display:flex;justify-content:space-between;position:absolute;inset:0;z-index:1;pointer-events:none}
- .paint-side{position:sticky;top:0;align-self:flex-start;width:var(--paint-gutter);height:var(--side-height);background-size:var(--side-width) var(--side-height);background-repeat:no-repeat}
- .paint-city{background-position:calc(var(--paint-gutter)/2 - var(--side-width)*.119) bottom;mask-image:linear-gradient(to right,#000 calc(100% - 8px),transparent)}
- .paint-trees{background-position:calc(var(--paint-gutter)/2 - var(--side-width)*.885) bottom;mask-image:linear-gradient(to left,#000 calc(100% - 8px),transparent)}
- .paint-landscape{width:max(100%,var(--side-width));clip-path:inset(82% 0 0)}
- .personal-home .home,.personal-post .post{width:calc(100% - var(--paint-gutter)*2 - 24px);max-width:640px;padding:64px 0 calc(var(--side-height)*.18 + 48px);overflow-wrap:break-word}
- .personal-home .home{padding-top:clamp(64px,7.6667vw,92px)}
- .hello h1,.post .post-heading h1{font-size:clamp(24px,3.5vw,36px)}
- .hello p,.post-subtitle{font-size:clamp(16px,2vw,20px)}
- .personal-copy,.post-intro,.post .article-copy{font-size:clamp(16px,2.15vw,21px);line-height:1.6}
- .personal-copy p+p{margin-top:20px}
- .project{gap:12px}
- .project-description{font-size:clamp(15px,1.8vw,18px)}
- .post .article-copy h2{font-size:clamp(20px,2.4vw,23px)}
- .post-note{font-size:16px}
- footer{gap:16px}
- .location{flex-basis:100%;margin-left:0}
+/* A complete painting, with real HTML fitted to the open pigment contours. */
+.personal-home{--painting-height:66.666667vw;height:max(100svh,var(--painting-height));min-height:0}
+.personal-home:not(.personal-post){min-height:0}
+.personal-home:not(.art-fitted){height:auto;min-height:100svh}
+.personal-home:not(.art-fitted) main{padding-bottom:var(--painting-height)}
+.paint-field{top:auto;bottom:0;height:var(--painting-height);z-index:0}
+.paint-landscape{inset:0;width:100%;height:100%;aspect-ratio:auto;transform:none;background-size:100% 100%;clip-path:none;mask-image:none}
+.personal-home main{background:transparent;box-shadow:none}
+.art-fitted:not(.personal-post) .home{position:absolute;inset:auto 0 0;width:100%;height:var(--painting-height);max-width:none;margin:0;padding:0;z-index:1}
+.art-fitted .hello,.art-fitted .personal-copy,.art-fitted .work{display:contents}
+.art-fitted .home h1,.art-fitted .home p,.art-fitted .home h2,.art-fitted .home .project,.art-fitted .home footer{margin:0;padding:0;max-width:none}
+.art-fitted .home .work h2{padding-top:calc(var(--fitted-font)*.85);border-top:1px solid #e5eae7;box-sizing:content-box}
+.art-fitted .home .project{display:block}
+.art-fitted .home .project>div{width:calc(100% - var(--fitted-font)*1.6)}
+.art-fitted .home .project-name{font-size:calc(var(--fitted-font)*1.03);line-height:1.3;margin-bottom:calc(var(--fitted-font)*.2)}
+.art-fitted .home .project-description{font-size:calc(var(--fitted-font)*.88);line-height:1.5;letter-spacing:0}
+.art-fitted .home .arrow{position:absolute;right:0;top:0;font-size:var(--fitted-font)}
+.art-fitted .home footer{padding-top:calc(var(--fitted-font)*.7);gap:calc(var(--fitted-font)*.9);align-items:baseline}
+.art-fitted .home .location{font-size:1em}
+.personal-post.art-fitted .post{position:absolute;margin:0;padding:0 4px;max-width:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#a4b1a8 transparent;background:transparent}
+.personal-post.art-fitted .post:focus{outline:none}
+.personal-post.art-fitted .post:focus-visible{outline:1px solid #a4b1a8;outline-offset:4px}
+.personal-post.art-fitted .post-intro,.personal-post.art-fitted .article-copy{font-size:var(--post-font);line-height:1.6}
+.personal-post.art-fitted .post-nav{margin-bottom:24px}
+.personal-post.art-fitted .post-heading h1{font-size:calc(var(--post-font)*1.65)}
+.personal-post.art-fitted .post-subtitle{font-size:calc(var(--post-font)*.95)}
+.personal-post.art-fitted .article-copy h2{font-size:calc(var(--post-font)*1.2)}
+.personal-post.art-fitted .post-note{font-size:calc(var(--post-font)*.85)}
+@media(max-width:900px){
+ .personal-home{--painting-height:300vw}
+ .art-fitted .home .location{flex-basis:100%;margin-left:0}
 }

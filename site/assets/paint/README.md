@@ -1,6 +1,6 @@
 # Current artwork
 
-The homepage and essay use one connected Toronto acrylic landscape, with matte texture, no books, and painted water that reaches the bottom edge across the full viewport. See [the asset notes and final prompt](toronto-acrylic-water-edge.md). Earlier landscapes and individual swatches remain as source history and are not loaded by the site.
+The homepage and essay use complete landscape and portrait compositions, with matte texture, no books, and water that reaches the bottom edge. Pretext fits the homepage copy to the paint contours, instead of cropping the painting around a text panel. See [the portrait and layout notes](toronto-acrylic-portrait.md) and [the landscape source](toronto-acrylic-water-edge.md). Earlier landscapes and individual swatches remain as source history and are not loaded by the site.
 
 # Acrylic paint assets
 

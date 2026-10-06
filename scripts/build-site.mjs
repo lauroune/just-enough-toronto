@@ -2,14 +2,20 @@ import {cp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {buildPaintStylesheet} from './build-paint.mjs';
+import {build as bundle} from 'esbuild';
 // A separate output keeps the existing game preview and saved game intact.
 const out=resolve('dist-site');await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
 await cp('site/index.html',`${out}/index.html`);await cp('site/404.html',`${out}/404.html`);await cp('site/enough',`${out}/enough`,{recursive:true});await cp('site/assets',`${out}/site-assets`,{recursive:true});
 const paint=await buildPaintStylesheet();
 await writeFile(`${out}/site-assets/${paint.filename}`,paint.css);
+const pretextLicense=await readFile('node_modules/@chenglou/pretext/LICENSE','utf8');
+const layout=await bundle({entryPoints:['site/src/paint-layout.js'],bundle:true,minify:true,format:'esm',write:false,target:['es2022'],legalComments:'inline',banner:{js:`/*! Pretext\n${pretextLicense}*/`}});
+const layoutCode=layout.outputFiles[0].text;
+const layoutName=`paint-layout-${createHash('sha256').update(layoutCode).digest('hex').slice(0,12)}.js`;
+await writeFile(`${out}/site-assets/${layoutName}`,layoutCode);
 for(const path of ['index.html','enough/index.html']){
  const html=await readFile(`${out}/${path}`,'utf8');
- await writeFile(`${out}/${path}`,html.replace('/site-assets/paint-critical.css',`/site-assets/${paint.filename}`));
+ await writeFile(`${out}/${path}`,html.replace('/site-assets/paint-critical.css',`/site-assets/${paint.filename}`).replace('/site-assets/paint-layout.js',`/site-assets/${layoutName}`));
 }
 // Changed styles and film titles must also update immediately for returning
 // visitors whose browser still has the preceding release cached.

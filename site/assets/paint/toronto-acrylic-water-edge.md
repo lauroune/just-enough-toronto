@@ -2,7 +2,7 @@
 
 Edited with the built-in image generation tool from the natural acrylic landscape. The two books are removed. Painted water continues to the lower image edge and both corners. The CN Tower, streetcar, trees, transparent reading area and matte acrylic character remain. No cast shadows or motion are added.
 
-The current asset is `toronto-acrylic-water-edge.avif`: 1536 × 1024 native pixels, alpha, AVIF quality 82, 4:4:4 colour sampling, 286,411 bytes. No upscaling. It is embedded with the reading fonts in the same render-blocking stylesheet. Below 1200 pixels, CSS crops the same artwork into sticky painted side margins and a water footer. The text stays in a central column, with body type at least 16 pixels, instead of stacking above the painting. The brushwork keeps its original proportions and the water reaches the bottom edge.
+The landscape asset is `toronto-acrylic-water-edge.avif`: 1536 × 1024 native pixels, alpha, AVIF quality 82, 4:4:4 colour sampling, 286,411 bytes. No upscaling. It is embedded with the reading fonts in the same render-blocking stylesheet. The previous cropped side panels have been removed. The complete landscape now pairs with a separate portrait composition and contour-based text fitting; see [the current layout notes](toronto-acrylic-portrait.md).
 
 ## Final prompt
 

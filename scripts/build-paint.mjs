@@ -13,7 +13,9 @@ export async function buildPaintStylesheet(){
   rules.push(`@font-face{font-family:'${family}';font-style:normal;font-weight:${weight};font-display:block;src:url(data:font/woff2;base64,${data}) format('woff2')}`);
  }
  const data=(await readFile('site/assets/paint/toronto-acrylic-water-edge.avif')).toString('base64');
- rules.push(`.paint-landscape,.paint-side{background-image:url(data:image/avif;base64,${data})}`);
+ rules.push(`.paint-landscape{background-image:url(data:image/avif;base64,${data})}`);
+ const portrait=(await readFile('site/assets/paint/toronto-acrylic-portrait.avif')).toString('base64');
+ rules.push(`@media(max-width:900px){.paint-landscape{background-image:url(data:image/avif;base64,${portrait})}}`);
  const css=rules.join('\n');
  const hash=createHash('sha256').update(css).digest('hex').slice(0,12);
  return {css,filename:`paint-${hash}.css`};
