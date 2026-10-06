@@ -6,7 +6,7 @@ Created with the built-in image generation tool, using the approved landscape as
 
 The homepage uses Cheng Lou's MIT-licensed [Pretext](https://github.com/chenglou/pretext) to measure the real copy and fit font size, paragraph widths and spacing inside the image's alpha contour. The artwork is displayed whole at its native aspect ratio. There are no cropped side panels, image masks, white cards or stretched brushstrokes. The CSS reserves the painting's dimensions before script execution. Real HTML, links, browser zoom and text selection remain available. The long blog article scrolls in the painting's transparent centre at a readable size.
 
-Contours in `site/src/paint-contour*.json` are sampled at eight-pixel intervals with an alpha threshold of 18. The fitter includes an additional inner margin and verifies every row occupied by each paragraph. The prepared font/text measurements are cached across layout passes. Render-blocking paint/font CSS and the layout module avoid a late artwork reveal.
+Contours in `site/src/paint-contour*.json` are sampled at eight-pixel intervals with an alpha threshold of 18. The fitter includes an additional inner margin and verifies every row occupied by each paragraph. The prepared font/text measurements are cached across layout passes. Render-blocking font CSS, a media-qualified stylesheet for the active composition, and the layout module avoid a late artwork reveal. Phones and narrow tablets up to 760px use this portrait; 761–1100px uses the square composition; wider screens use the landscape.
 
 ## Initial portrait prompt
 

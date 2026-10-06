@@ -1,6 +1,7 @@
 import {prepare,layout,clearCache} from '@chenglou/pretext';
 import landscape from './paint-contour.json';
 import portrait from './paint-contour-portrait.json';
+import square from './paint-contour-square.json';
 
 // The alpha contour defines the available space. The painting is never masked,
 // sliced, stretched, or covered by a text card. All copy remains semantic HTML.
@@ -33,12 +34,13 @@ const nodes=isPost?[]:selectors.map(selector=>main.querySelector(selector));
 const contents=nodes.map(node=>node.textContent.trim());
 
 function compose(font,contour,scale,mobile){
- let y=(mobile?100:76)*scale;
+ const medium=contour===square;
+ let y=(mobile||medium?100:76)*scale;
  const items=[];
- const startLeft=(mobile?142:350)*scale;
- const preferredRight=(mobile?620:1192)*scale;
- const inset=mobile?18:28;
- const ratios=[mobile?1.46:1.7,.96,1,1,1,1,.66,1,.72];
+ const startLeft=(mobile?142:medium?280:350)*scale;
+ const preferredRight=(mobile?620:medium?1000:1192)*scale;
+ const inset=mobile?18:medium?22:28;
+ const ratios=[mobile?1.46:medium?1.58:1.7,.96,1,1,1,1,.66,1,.72];
  const gaps=[.32,1.15,.85,.85,.85,1.45,.65,1.1,0];
  for(let index=0;index<nodes.length;index++){
   const size=font*ratios[index];
@@ -71,11 +73,11 @@ function compose(font,contour,scale,mobile){
   items.push({node:nodes[index],index,left,width:right-left,top:y,height,size,leading,tracking,weight});
   y+=height+font*gaps[index];
  }
- return {fits:y<=(mobile?1810:806)*scale,items,end:y,font};
+ return {fits:y<=(mobile?1810:medium?1000:806)*scale,items,end:y,font};
 }
 
 function fitHome(contour,scale,mobile){
- let low=(mobile?18:12)*scale,high=(mobile?42:34)*scale;
+ let low=(mobile?18:12)*scale,high=(mobile?42:contour===square?46:34)*scale;
  let result=compose(low,contour,scale,mobile);
  for(let pass=0;pass<13;pass++){
   const size=(low+high)/2;
@@ -96,11 +98,12 @@ function fitHome(contour,scale,mobile){
 function fitPost(contour,scale,mobile){
  // An essay scrolls through the painting's open centre; never shrink a whole
  // long article to poster-sized type or place a white panel over the paint.
- const top=(mobile?100:76)*scale;
- const bottom=(mobile?1630:798)*scale;
+ const medium=contour===square;
+ const top=(mobile||medium?100:76)*scale;
+ const bottom=(mobile?1630:medium?990:798)*scale;
  const free=corridor(contour,top,bottom-top,scale,mobile?20:30);
- const left=Math.max((mobile?145:360)*scale,free.left);
- const right=Math.min((mobile?610:1180)*scale,free.right);
+ const left=Math.max((mobile?145:medium?280:360)*scale,free.left);
+ const right=Math.min((mobile?610:medium?1000:1180)*scale,free.right);
  const offset=Math.max(0,innerHeight-contour.height*scale);
  Object.assign(main.style,{left:`${left}px`,top:`${top+offset}px`,width:`${right-left}px`,height:`${bottom-top}px`});
  main.style.setProperty('--post-font',`${Math.max(16,Math.min(21,(right-left)/28))}px`);
@@ -114,8 +117,8 @@ function fit(){
  const size=`${width}x${innerHeight}`;
  if(size===lastSize)return;
  lastSize=size;
- const mobile=width<=900;
- const contour=mobile?portrait:landscape;
+ const mobile=width<=760;
+ const contour=mobile?portrait:width<=1100?square:landscape;
  const scale=width/contour.width;
  if(prepared.size>512)prepared.clear();
  if(isPost)fitPost(contour,scale,mobile);else fitHome(contour,scale,mobile);

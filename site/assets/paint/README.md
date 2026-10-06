@@ -1,6 +1,6 @@
 # Current artwork
 
-The homepage and essay use complete landscape and portrait compositions, with matte texture, no books, and water that reaches the bottom edge. Pretext fits the homepage copy to the paint contours, instead of cropping the painting around a text panel. See [the portrait and layout notes](toronto-acrylic-portrait.md) and [the landscape source](toronto-acrylic-water-edge.md). Earlier landscapes and individual swatches remain as source history and are not loaded by the site.
+The homepage and essay use complete landscape, square and portrait compositions, with matte texture, no books, and water that reaches the bottom edge. Pretext fits the homepage copy to the paint contours, instead of cropping the painting around a text panel. See [the portrait and layout notes](toronto-acrylic-portrait.md), [the square composition](toronto-acrylic-square.md) and [the landscape source](toronto-acrylic-water-edge.md). Earlier landscapes and individual swatches remain as source history and are not loaded by the site.
 
 # Acrylic paint assets
 
@@ -10,7 +10,7 @@ The October 2026 revision replaces bright white specular speckles and crunchy im
 
 The assets preserve their natural proportions. Their longest edge is 1440 pixels, encoded as transparent AVIF at quality 65 with 4:4:4 colour sampling. CSS keeps the paint outside the reading column; narrow screens place the long accents above the heading and below the footer. Paint remains static and does not respond to the cursor.
 
-`build-paint.mjs` embeds the textures and reading fonts in one render-blocking stylesheet with a content-hashed filename. Paint and type arrive together, with no image reveal animation or JavaScript loading gate.
+The original swatch loading approach is now retired. `build-paint.mjs` embeds the reading fonts and each complete composition in content-hashed stylesheets. Media queries make only the active artwork stylesheet render-blocking. Paint and type arrive together, with no image reveal animation or JavaScript loading gate.
 
 ## Generation prompts
 

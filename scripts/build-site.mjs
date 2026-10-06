@@ -8,6 +8,8 @@ const out=resolve('dist-site');await rm(out,{recursive:true,force:true});await m
 await cp('site/index.html',`${out}/index.html`);await cp('site/404.html',`${out}/404.html`);await cp('site/enough',`${out}/enough`,{recursive:true});await cp('site/assets',`${out}/site-assets`,{recursive:true});
 const paint=await buildPaintStylesheet();
 await writeFile(`${out}/site-assets/${paint.filename}`,paint.css);
+for(const variant of paint.variants)await writeFile(`${out}/site-assets/${variant.filename}`,variant.css);
+const paintLinks=paint.variants.map(variant=>`<link rel="stylesheet" href="/site-assets/${variant.filename}" media="${variant.media}" fetchpriority="high">`).join('\n');
 const pretextLicense=await readFile('node_modules/@chenglou/pretext/LICENSE','utf8');
 const layout=await bundle({entryPoints:['site/src/paint-layout.js'],bundle:true,minify:true,format:'esm',write:false,target:['es2022'],legalComments:'inline',banner:{js:`/*! Pretext\n${pretextLicense}*/`}});
 const layoutCode=layout.outputFiles[0].text;
@@ -15,7 +17,7 @@ const layoutName=`paint-layout-${createHash('sha256').update(layoutCode).digest(
 await writeFile(`${out}/site-assets/${layoutName}`,layoutCode);
 for(const path of ['index.html','enough/index.html']){
  const html=await readFile(`${out}/${path}`,'utf8');
- await writeFile(`${out}/${path}`,html.replace('/site-assets/paint-critical.css',`/site-assets/${paint.filename}`).replace('/site-assets/paint-layout.js',`/site-assets/${layoutName}`));
+ await writeFile(`${out}/${path}`,html.replace('/site-assets/paint-critical.css',`/site-assets/${paint.filename}`).replace('/site-assets/paint-layout.js',`/site-assets/${layoutName}`).replace('</head>',`${paintLinks}\n</head>`));
 }
 // Changed styles and film titles must also update immediately for returning
 // visitors whose browser still has the preceding release cached.
