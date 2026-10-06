@@ -1,3 +1,5 @@
+This version is preserved as source history. The live site uses [the natural acrylic revision](toronto-acrylic-natural.md).
+
 # Toronto acrylic landscape
 
 Created with the built-in image generation tool, using Mike's approved acrylic homepage concept as the reference. The final asset keeps the CN Tower, Queen Street streetcar, green trees, books and connecting lake strokes. All website lettering was removed so the page uses real, accessible HTML text.

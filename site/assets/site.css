@@ -33,10 +33,10 @@ footer a:hover{text-decoration:underline}
 .personal-home{position:relative;isolation:isolate;min-height:100vh}
 .paint-field{position:absolute;pointer-events:none;z-index:2;inset:0;overflow:hidden;contain:strict}
 /* One connected painted landscape. No CSS or baked-in cast shadows. */
-.paint-landscape{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(calc(100% + 120px),1720px);aspect-ratio:1494/1052;background-size:100% 100%;background-repeat:no-repeat;filter:none;box-shadow:none}
-.personal-home:not(.personal-post){min-height:max(1020px,min(1212px,calc(70.415vw + 85px)))}
+.paint-landscape{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(calc(100% + 260px),1840px);aspect-ratio:3/2;background-size:100% 100%;background-repeat:no-repeat;filter:none;box-shadow:none}
+.personal-home:not(.personal-post){min-height:max(1120px,min(1251px,calc(66.667vw + 198px)))}
 .personal-home .home{padding-bottom:150px}
-.personal-post .post{padding-bottom:180px}
+.personal-post .post{padding-bottom:340px}
 /* Full-strength pigment stays in the margins, clear of the reading column. */
 .personal-home a:focus-visible{position:relative;z-index:3;background:#fff}
 /* The essays keep the same quiet white page and type as the introduction. */
@@ -65,7 +65,7 @@ footer a:hover{text-decoration:underline}
 @media(min-width:1600px){.home{padding-top:112px}}
 @media(max-width:1199px){
  /* Move the whole painting below the text when the margins are too narrow. */
- .personal-home .home,.personal-post .post{padding-bottom:calc(min(100vw,540px)*1052/1494 + 46px)}
+ .personal-home .home,.personal-post .post{padding-bottom:calc(min(100vw,540px)*2/3 + 46px)}
  .paint-landscape{width:min(100%,540px)}
  .personal-home:not(.personal-post){min-height:100vh}
 }

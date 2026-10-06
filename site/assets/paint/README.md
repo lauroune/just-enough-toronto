@@ -1,6 +1,6 @@
 # Current artwork
 
-The homepage and essay now use one connected Toronto acrylic landscape. See [the asset notes and final prompt](toronto-acrylic.md). The previous individual swatches below remain as source history and are not loaded by the site.
+The homepage and essay now use one connected Toronto acrylic landscape. Its latest material revision uses finer bristle marks and a more natural matte acrylic surface. See [the asset notes and final prompt](toronto-acrylic-natural.md). The previous individual swatches below remain as source history and are not loaded by the site.
 
 # Acrylic paint assets
 
