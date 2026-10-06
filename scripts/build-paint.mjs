@@ -12,11 +12,8 @@ export async function buildPaintStylesheet(){
   const data=(await readFile(`site/assets/fonts/${file}.woff2`)).toString('base64');
   rules.push(`@font-face{font-family:'${family}';font-style:normal;font-weight:${weight};font-display:block;src:url(data:font/woff2;base64,${data}) format('woff2')}`);
  }
- rules.push('.paint-layer span{background-size:100% 100%;background-position:center;filter:none}');
- for(const name of ['ochre','pine','blue','coral']){
-  const data=(await readFile(`site/assets/paint/${name}.avif`)).toString('base64');
-  rules.push(`.paint-${name} span{background-image:url(data:image/avif;base64,${data})}`);
- }
+ const data=(await readFile('site/assets/paint/toronto-acrylic.avif')).toString('base64');
+ rules.push(`.paint-landscape{background-image:url(data:image/avif;base64,${data})}`);
  const css=rules.join('\n');
  const hash=createHash('sha256').update(css).digest('hex').slice(0,12);
  return {css,filename:`paint-${hash}.css`};

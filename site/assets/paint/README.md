@@ -1,3 +1,7 @@
+# Current artwork
+
+The homepage and essay now use one connected Toronto acrylic landscape. See [the asset notes and final prompt](toronto-acrylic.md). The previous individual swatches below remain as source history and are not loaded by the site.
+
 # Acrylic paint assets
 
 Four distinct transparent acrylic paint textures, made with the built-in image generation tool. The original palette remains: ochre/sienna/coral, forest/sage/petrol, ultramarine/lilac, and vermilion/rose/ochre.

@@ -28,11 +28,11 @@ try{
  const result=await page.evaluate(()=>({
   fcp:performance.getEntriesByName('first-contentful-paint')[0]?.startTime,
   title:document.querySelector('h1').getBoundingClientRect().toJSON(),
-  paintBounds:document.querySelector('.paint-ochre').getBoundingClientRect().toJSON(),
+  paintBounds:document.querySelector('.paint-landscape').getBoundingClientRect().toJSON(),
   resources:performance.getEntriesByType('resource').map(r=>({url:r.name,bytes:r.transferSize,end:r.responseEnd})),
   loadedFonts:[...document.fonts].filter(f=>f.status==='loaded').map(f=>f.family),
   overflow:document.documentElement.scrollWidth>innerWidth,
-  paint:[...document.querySelectorAll('.paint-layer span')].map(e=>getComputedStyle(e).backgroundImage.startsWith('url("data:image/')),
+  paint:[...document.querySelectorAll('.paint-landscape')].map(e=>getComputedStyle(e).backgroundImage.startsWith('url("data:image/')),
  }));
  // Compare the first visible pixels, not just request completion times.
  const samples=frames.map(({data,timestamp})=>{
@@ -51,8 +51,8 @@ try{
  const lateRequests=requests.filter(u=>/acrylic-brushstrokes|\/paint\/.*\.(webp|avif)|\/fonts\//.test(u));
  await cdp.send('Page.stopScreencast');
  await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
- const before=await page.locator('.paint-ochre span').evaluate(e=>getComputedStyle(e).transform);
- await page.mouse.move(160,200);const after=await page.locator('.paint-ochre span').evaluate(e=>getComputedStyle(e).transform);
+ const before=await page.locator('.paint-landscape').evaluate(e=>getComputedStyle(e).transform);
+ await page.mouse.move(160,200);const after=await page.locator('.paint-landscape').evaluate(e=>getComputedStyle(e).transform);
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:`${out}/home-mobile.png`,fullPage:true});
  const mobileOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
  const checks={sameFirstFrame,paintFullyPresent:result.paint.every(Boolean),noLateAssetRequests:lateRequests.length===0,noOverflow:!result.overflow&&!mobileOverflow,paintFixed:before===after,noErrors:errors.length===0};

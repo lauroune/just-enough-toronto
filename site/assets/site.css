@@ -32,16 +32,11 @@ footer a:hover{text-decoration:underline}
 .personal-home .home{z-index:auto}
 .personal-home{position:relative;isolation:isolate;min-height:100vh}
 .paint-field{position:absolute;pointer-events:none;z-index:2;inset:0;overflow:hidden;contain:strict}
-.paint-layer{position:absolute}
-.paint-layer span{display:block;width:100%;height:100%;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
-.paint-ochre{right:calc(50% + 385px);top:118px;width:320px;aspect-ratio:3}
-.paint-ochre span{transform:rotate(-28deg)}
-.paint-pine{left:calc(50% + 380px);top:240px;width:168px;aspect-ratio:554/1440}
-.paint-pine span{transform:rotate(8deg)}
-.paint-blue{right:calc(50% + 385px);bottom:100px;width:320px;aspect-ratio:1440/555}
-.paint-blue span{transform:rotate(-24deg)}
-.paint-coral{left:calc(50% + 380px);bottom:26px;width:192px;aspect-ratio:1.5}
-.paint-coral span{transform:rotate(16deg)}
+/* One connected painted landscape. No CSS or baked-in cast shadows. */
+.paint-landscape{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(calc(100% + 120px),1720px);aspect-ratio:1494/1052;background-size:100% 100%;background-repeat:no-repeat;filter:none;box-shadow:none}
+.personal-home:not(.personal-post){min-height:max(1020px,min(1212px,calc(70.415vw + 85px)))}
+.personal-home .home{padding-bottom:150px}
+.personal-post .post{padding-bottom:180px}
 /* Full-strength pigment stays in the margins, clear of the reading column. */
 .personal-home a:focus-visible{position:relative;z-index:3;background:#fff}
 /* The essays keep the same quiet white page and type as the introduction. */
@@ -68,14 +63,11 @@ footer a:hover{text-decoration:underline}
 .sources{font-size:13px;color:#617067;border-top:1px solid #e5eae7;padding-top:20px;margin-top:40px}
 .path{font:13px ui-monospace,monospace;background:#f0f4f1;padding:3px 6px;border-radius:3px}
 @media(min-width:1600px){.home{padding-top:112px}}
-@media(max-width:900px){
- .home{padding-top:96px;padding-bottom:115px}
- .paint-ochre{left:-28px;right:auto;top:-24px;width:215px}
- .paint-ochre span{transform:rotate(-8deg)}
- .paint-pine{left:calc(100% + 10px);top:295px;width:112px}
- .paint-blue{left:-30px;right:auto;bottom:-16px;width:230px}
- .paint-blue span{transform:rotate(5deg)}
- .paint-coral{left:auto;right:-52px;bottom:-12px;width:135px}
+@media(max-width:1199px){
+ /* Move the whole painting below the text when the margins are too narrow. */
+ .personal-home .home,.personal-post .post{padding-bottom:calc(min(100vw,540px)*1052/1494 + 46px)}
+ .paint-landscape{width:min(100%,540px)}
+ .personal-home:not(.personal-post){min-height:100vh}
 }
 @media(max-width:520px){.home{padding:86px 26px 115px}.hello{margin-bottom:25px}.hello h1{font-size:31px}.hello p{font-size:18px}.personal-copy{font-size:19px;line-height:1.65}.personal-copy p+p{margin-top:20px}.work{margin-top:32px}footer{gap:20px 23px;margin-top:27px}.location{flex-basis:100%;margin-left:0}.article{padding:32px 24px}.mast{margin-bottom:42px}.article-copy{margin-top:32px}body{font-size:19px}.article figure img{aspect-ratio:4/3}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
@@ -100,7 +92,6 @@ footer a:hover{text-decoration:underline}
 .post .article-copy p{margin-top:18px}
 .post-note{margin-top:40px;padding-top:22px;border-top:1px solid #e5eae7;font-size:17px;line-height:1.65;color:#5e6c64}
 .post-note>a{display:inline-block;font:400 13px/1.6 'Bricolage Grotesque',system-ui,sans-serif;margin-top:14px}
-.personal-post .paint-pine{top:310px}
 @media(max-width:900px){.post{padding-top:96px;padding-bottom:115px}}
 @media(max-width:520px){.post{padding:86px 26px 115px}.post-nav{margin-bottom:30px}.post .post-heading h1{font-size:31px}.post-subtitle{font-size:17px}.post-intro,.post .article-copy{font-size:19px;line-height:1.65}.post .article-copy h2{font-size:22px}.post figure img{aspect-ratio:3/2}.project-description{font-size:17px}}
 
