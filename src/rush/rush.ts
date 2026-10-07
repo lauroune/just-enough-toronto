@@ -191,6 +191,13 @@ export class Rush implements SceneAddon{
   if(e.kind==='ready')this.say('Pip has another urgent bundle. Meet her.',3);
  }
  private say(text:string,seconds:number){this.banner={text,until:this.clock+seconds};}
+ visited(x:number,z:number){
+  if(!this.car||!this.driving())return;
+  // Teleporting from the map while driving takes the car too: onto a clear street near the spot,
+  // far enough from Pip not to count as meeting her.
+  const at=this.clearSpot([x,z],Jobs.MEET+6);if(!at)return;
+  this.car.reset(at.x,at.y+.3,at.z,at.heading);this.snapshot();this.prev.p.copy(this.curr.p);this.prev.q.copy(this.curr.q);this.cam.ready=false;this.approach=undefined;this.offRoute=true;
+ }
  pipAutopilot(dt:number,pip:{x:number;z:number;heading:number}){
   if(this.car&&this.jobs.phase==='meet'){
    // Pip stops and turns to wave the car down when it is close.
