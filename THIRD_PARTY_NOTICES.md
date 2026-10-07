@@ -3,7 +3,7 @@
 The MIT licence covers original code, authored geometry and UI, not third-party data or media.
 
 - **City of Toronto data and orthophotography:** Open Government Licence – Toronto. Contains information licensed under that licence. https://open.toronto.ca/open-data-license/ See `public/geography/CREDITS.txt` and `/sources.html` for dataset URLs and derived-data limitations.
-- **OpenStreetMap:** © OpenStreetMap contributors, ODbL. https://www.openstreetmap.org/copyright
+- **OpenStreetMap:** © OpenStreetMap contributors, ODbL. https://www.openstreetmap.org/copyright Rush's downtown street grid (`src/rush/data/downtown-roads.json`) is derived from OpenStreetMap highways, fetched October 2026.
 - **Poly Haven materials, sky and leaf atlas:** CC0; individual creators and URLs in `public/materials/CREDITS.txt`.
 - **Poulton Block photograph:** GTD Aquitaine, public-domain dedication, credited in the material file.
 - **Fonts:** SIL Open Font License / bundled individual licence files in `public/fonts/` and `site/assets/fonts/`.

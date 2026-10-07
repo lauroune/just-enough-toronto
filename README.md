@@ -40,6 +40,7 @@ Off by default, and nothing in the game links to it. Type `rush` while playing (
 
 - **Rush mode**: you are the human operator. While Pip walks her route, she hands you urgent bundles: meet her, then make three drops across the neighbourhood before the clock runs out. A race car with Rocket League-style handling (jumps, double jumps, dodge flips, air control, boost, powerslide) and boost pads on the side streets. **C** swaps between Pip and the car.
 - **Mini-map**: Pip, her delivery, your targets and the big boost pads. **M** enlarges it.
+- **Downtown and the Tower Run**: drive west past River Street and keep going. The City roof outlines the game already uses as a distant backdrop become lit, solid buildings on an OpenStreetMap street grid, all the way to the CN Tower. Crossing into downtown starts a timer to the foot of the tower; your best time is saved.
 - **Supersonic**, **Phase through buildings** and **Moon gravity** for blasting through the city.
 
 Car controls: WASD drive (and pitch/yaw in the air), Space jump, Shift or left mouse boost, X powerslide, Q/E air roll, R reset. A standard gamepad works too (triggers drive, A jump, B boost, X slide, Y swap). The car, pads and map load only once switched on; settings are saved in the browser. Code lives in `src/rush/`; car models are CC BY 4.0, credited in `public/models/race/CREDITS.txt`.

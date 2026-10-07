@@ -6,6 +6,18 @@ import {EDGES,NODES,edgePoints,type NodeId,type Point} from '../game';
 
 // The rules of Rush, kept free of rendering so they can be tested directly.
 
+/**
+ * Extra drivable area beyond the authored map (Rush's downtown). Streets here are all
+ * drivable; footprints are solid. Empty unless the downtown district is loaded.
+ */
+export const EXTRA:{roads:{p:Point[]}[];buildings:{p:Point[];bounds:number[]}[];bounds?:typeof BOUNDS}={roads:[],buildings:[]};
+export function setExtraArea(area?:{roads:{p:Point[]}[];buildings:{p:Point[]}[];bounds:typeof BOUNDS}){
+ EXTRA.roads=area?.roads??[];EXTRA.bounds=area?.bounds;
+ EXTRA.buildings=(area?.buildings??[]).map(b=>{const xs=b.p.map(p=>p[0]),zs=b.p.map(p=>p[1]);return {p:b.p,bounds:[Math.min(...xs),Math.min(...zs),Math.max(...xs),Math.max(...zs)]};});
+}
+/** The playable rectangle: the authored map, grown to include any extra area. */
+export function driveBounds(){const e=EXTRA.bounds;return e?{left:Math.min(BOUNDS.left,e.left),right:Math.max(BOUNDS.right,e.right),top:Math.min(BOUNDS.top,e.top),bottom:Math.max(BOUNDS.bottom,e.bottom)}:BOUNDS;}
+
 /** Pip's stroll while you drive: her own delivery route, the open park path, there and back. */
 const STROLL:NodeId[]=['bakery','west','southwest','southeast','east','approach','side'];
 export function strollPath():Point[]{
@@ -55,11 +67,10 @@ export function timeBudget(from:Point,targets:Spot[]){
 export type Pad={x:number;z:number;big:boolean};
 const DRIVABLE=new Set(['secondary','tertiary','residential','unclassified']);
 /** Boost pads every ~80 m down the middle of the drivable streets; every fifth is a big one. */
-export function layoutPads(spacing=80):Pad[]{
+export function layoutPads(spacing=80,streets:{p:Point[]}[]=GEO.roads.filter(r=>DRIVABLE.has(r.kind)&&!r.bridge),area=BOUNDS):Pad[]{
  const pads:Pad[]=[];
- const inside=(x:number,z:number)=>x>BOUNDS.left+10&&x<BOUNDS.right-10&&z>BOUNDS.top+10&&z<BOUNDS.bottom-10;
- for(const road of GEO.roads){
-  if(!DRIVABLE.has(road.kind)||road.bridge)continue;
+ const inside=(x:number,z:number)=>x>area.left+10&&x<area.right-10&&z>area.top+10&&z<area.bottom-10;
+ for(const road of streets){
   let carry=spacing/2;
   for(let i=1;i<road.p.length;i++){
    const a=road.p[i-1],b=road.p[i],len=Math.hypot(b[0]-a[0],b[1]-a[1]);
@@ -91,14 +102,14 @@ export function nearestRoad(p:Point){
 
 /** Points every few metres down the middle of nearby side streets, nearest first, with the road's direction. */
 export function roadSpots(p:Point,radius=160,step=4){
- const out:{x:number;z:number;heading:number;distance:number}[]=[];
- for(const road of GEO.roads){
-  if(!DRIVABLE.has(road.kind)||road.name==='Queen Street East')continue;
+ const out:{x:number;z:number;heading:number;distance:number}[]=[],B=driveBounds();
+ const streets=[...GEO.roads.filter(r=>DRIVABLE.has(r.kind)&&r.name!=='Queen Street East'),...EXTRA.roads];
+ for(const road of streets){
   for(let i=1;i<road.p.length;i++){
    const a=road.p[i-1],b=road.p[i],len=Math.hypot(b[0]-a[0],b[1]-a[1]),heading=Math.atan2(b[0]-a[0],b[1]-a[1]);
    for(let d=step/2;d<len;d+=step){
     const x=a[0]+(b[0]-a[0])*d/len,z=a[1]+(b[1]-a[1])*d/len,distance=Math.hypot(x-p[0],z-p[1]);
-    if(distance<=radius&&x>BOUNDS.left+10&&x<BOUNDS.right-10&&z>BOUNDS.top+10&&z<BOUNDS.bottom-10)out.push({x,z,heading,distance});
+    if(distance<=radius&&x>B.left+10&&x<B.right-10&&z>B.top+10&&z<B.bottom-10)out.push({x,z,heading,distance});
    }
   }
  }
@@ -107,7 +118,7 @@ export function roadSpots(p:Point,radius=160,step=4){
 
 /** True when a point is inside a mapped building footprint (walls only: a car there is boxed in). */
 export function inBuilding(x:number,z:number,pad=0){
- for(const b of GEO.buildings){const [x0,z0,x1,z1]=b.bounds;if(x<x0-pad||x>x1+pad||z<z0-pad||z>z1+pad)continue;if(inside([x,z],b.p))return true;}
+ for(const b of [...GEO.buildings,...EXTRA.buildings]){const [x0,z0,x1,z1]=b.bounds;if(x<x0-pad||x>x1+pad||z<z0-pad||z>z1+pad)continue;if(inside([x,z],b.p))return true;}
  return false;
 }
 /**

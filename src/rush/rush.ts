@@ -2,12 +2,13 @@ import * as T from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import type {Neighbourhood,SceneAddon} from '../scene';
 import {groundHeight} from '../terrain';
-import {BOUNDS} from '../motion';
 import {NODES,type Point} from '../game';
 import {RaceCar,NORMAL_TUNING,SUPERSONIC_TUNING,reserveGroundGroup,type CarInput,type CarTuning} from './race-car';
 import {loadCarModel,type CarModel} from './car-model';
 import {Minimap,type MapMarker} from './minimap';
-import {strollPath,pathLength,pingPong,nearestAlong,clearSpot,layoutPads,Jobs,type JobEvent,type Pad} from './rush-logic';
+import {Downtown,DOWNTOWN,DOWNTOWN_ROADS,DOWNTOWN_BUILDINGS,CN_TOWER_POINT} from './downtown';
+import {GRAPHICS} from '../render-quality';
+import {strollPath,pathLength,pingPong,nearestAlong,clearSpot,layoutPads,setExtraArea,driveBounds,Jobs,type JobEvent,type Pad} from './rush-logic';
 import type {RushSettings} from './settings';
 
 export type Chime=(kind:'tap'|'send'|'stop'|'success'|'bell')=>void;
@@ -17,6 +18,9 @@ const CAR_KEYS=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','Arrow
 const STROLL_SPEED=1.25;
 /** Further than this from her route, Pip waits where she is rather than cut through buildings. */
 const STROLL_REACH=25;
+const BEST_KEY='enough-rush-tower-best';
+const readBest=()=>{try{const v=Number(localStorage.getItem(BEST_KEY));return v>0?v:undefined;}catch{return undefined;}};
+const writeBest=(v:number)=>{try{localStorage.setItem(BEST_KEY,String(v));}catch{/* Best time is kept for this visit only. */}};
 const fmt=(s:number)=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 
 /** The race car, pads, HUD and map. Loaded only once a Garage switch turns Rush on. */
@@ -34,7 +38,10 @@ export class Rush implements SceneAddon{
  private render={p:new T.Vector3(),q:new T.Quaternion()};private cam={pos:new T.Vector3(),fwd:new T.Vector3(0,0,1),ready:false};
  private stroll=strollPath();private strollLength=pathLength(this.stroll);private strollAt=0;private approach?:Point;private offRoute=false;
  private input:CarInput={throttle:0,steer:0,roll:0,jump:false,boost:false,drift:false};
- private clock=0;private stuck=0;private mapClock=0;private reserved=false;
+ private clock=0;private stuck=0;
+ private downtown?:Downtown;
+ /** The Tower Run: from the edge of downtown to the foot of the CN Tower, timed. */
+ private tower={running:false,time:0,best:readBest(),done:false};private mapClock=0;private reserved=false;
  constructor(private town:Neighbourhood,private host:HTMLElement,private chime:Chime){
   this.group.name='Rush';this.town.threeScene.add(this.group);this.group.add(this.beacons);
   this.meetBeacon=beacon(0x5fd1e0);this.meetBeacon.visible=false;this.group.add(this.meetBeacon);
@@ -51,7 +58,11 @@ export class Rush implements SceneAddon{
  }
  apply(next:RushSettings){
   const prev=this.settings;this.settings=next;
+  if(next.rush)this.reserveGroups();
+  if(next.rush&&!this.downtown){this.downtown=new Downtown(this.town.threeScene,this.town.streetPhysics.world);setExtraArea({roads:DOWNTOWN_ROADS,buildings:DOWNTOWN_BUILDINGS,bounds:DOWNTOWN});}
+  if(!next.rush&&this.downtown){this.downtown.dispose();this.downtown=undefined;setExtraArea(undefined);}
   if(next.minimap&&!this.minimap)this.minimap=new Minimap(this.host);
+  this.minimap?.setArea(this.downtown?{bounds:DOWNTOWN,roads:DOWNTOWN_ROADS,buildings:DOWNTOWN_BUILDINGS}:undefined);
   if(!next.minimap&&this.minimap){this.minimap.dispose();this.minimap=undefined;}
   if(next.rush&&(!this.car||prev?.car!==next.car))void this.spawnCar(next.car);
   if(!next.rush&&this.car)this.removeCar();
@@ -65,7 +76,6 @@ export class Rush implements SceneAddon{
   const model=await loadCarModel(id).catch(error=>{console.error('Race car failed to load',error);return undefined;});
   if(this.loading!==id||!model||!this.settings.rush)return;this.loading=undefined;
   const physics=this.town.streetPhysics;
-  if(!this.reserved){reserveGroundGroup(physics.world,physics.ground);this.reserved=true;}
   const was=this.car?{...this.car.position,heading:this.car.heading}:this.parkingNearPip();
   const boost=this.car?.boost;this.removeCar(false);
   this.model=model;this.car=new RaceCar(physics.world,model.spec,{...was,y:Math.max(was.y,groundHeight(was.x,was.z)+.9)});
@@ -94,9 +104,11 @@ export class Rush implements SceneAddon{
   if(!this.car)return;const p=this.car.position,at=this.clearSpot([p.x,p.z])??{x:PARK.x,y:groundHeight(PARK.x,PARK.z)+.9,z:PARK.z,heading:this.car.heading};
   this.car.reset(at.x,at.y+.3,at.z,at.heading);this.snapshot();this.prev.p.copy(this.curr.p);this.prev.q.copy(this.curr.q);this.cam.ready=false;this.stuck=0;
  }
+ /** Before any Rush collider exists: only the ground keeps the ground bit, so phase mode works. */
+ private reserveGroups(){if(this.reserved)return;const physics=this.town.streetPhysics;reserveGroundGroup(physics.world,physics.ground);this.reserved=true;}
  // ---- boost pads ----
  private buildPads(){
-  this.pads=layoutPads();this.padTimers=this.pads.map(()=>0);
+  this.pads=[...layoutPads(),...(this.downtown?layoutPads(90,DOWNTOWN_ROADS,DOWNTOWN):[])];this.padTimers=this.pads.map(()=>0);
   const smallMat=new T.MeshBasicMaterial({color:0xffb347,transparent:true,opacity:.85,depthWrite:false});
   const bigMat=new T.MeshBasicMaterial({color:0xffc66b,transparent:true,opacity:.92,blending:T.AdditiveBlending,depthWrite:false});
   const small=this.pads.filter(p=>!p.big),big=this.pads.filter(p=>p.big);
@@ -181,7 +193,19 @@ export class Rush implements SceneAddon{
   // Wedged: throttle held, no wheels down and not moving for a while. Put it back on the road.
   if(driving&&(this.input.throttle||this.input.boost)&&!this.car.contacts&&this.car.speed<.6&&!this.car.flipping)this.stuck+=dt;else this.stuck=0;
   if(this.stuck>1.5){this.respawn();this.say('Back on the road.',1.5);}
-  if(p.y<groundHeight(p.x,p.z)-12||p.x<BOUNDS.left-30||p.x>BOUNDS.right+30||p.z<BOUNDS.top-30||p.z>BOUNDS.bottom+30)this.respawn();
+  const B=driveBounds();
+  if(p.y<groundHeight(p.x,p.z)-12||p.x<B.left-30||p.x>B.right+30||p.z<B.top-30||p.z>B.bottom+30)this.respawn();
+  if(this.driving())this.towerRun(dt,p);
+ }
+ private towerRun(dt:number,p:{x:number;z:number}){
+  const t=this.tower,west=p.x<DOWNTOWN.right;
+  if(!west){t.running=false;t.done=false;t.time=0;return;}
+  if(!t.running&&!t.done){t.running=true;t.time=0;this.say('Tower Run: drive to the foot of the CN Tower',3);}
+  if(!t.running)return;t.time+=dt;
+  if(Math.hypot(p.x-CN_TOWER_POINT[0],p.z-CN_TOWER_POINT[1])<45){
+   t.running=false;t.done=true;const best=t.best===undefined||t.time<t.best;if(best){t.best=t.time;writeBest(t.time);}
+   this.say(`CN Tower in ${fmt(t.time)}.${String(Math.floor(t.time%1*10))}${best?' · new best':` · best ${fmt(t.best!)}`}`,5);this.chime('bell');
+  }
  }
  private onJob(e:JobEvent){
   if(e.kind==='loaded'){this.say(`Pip loads three urgent drops · ${fmt(e.seconds!)} on the clock`,3.5);this.chime('send');}
@@ -226,6 +250,7 @@ export class Rush implements SceneAddon{
    this.trail?.update(back,side,supersonic&&dt>0&&!this.reduced);
   }
   else this.render.p.set(this.town.pipState().x,this.town.pipState().y,this.town.pipState().z);
+  const lod=GRAPHICS[this.town.getQuality()].lod,focus=this.driving()?this.render.p:this.town.pipState();this.downtown?.update(focus,lod);
   this.updatePads(this.clock);
   this.updateBeacons();
   this.updateHud();
@@ -266,6 +291,7 @@ export class Rush implements SceneAddon{
   else if(j.phase==='meet')task='<b>Pip needs a hand.</b> Meet her';
   else if(j.phase==='run')task=`<b>Urgent</b> ${j.targets.filter(t=>t.done).length} of ${j.targets.length} delivered <span class="rush-clock ${j.timeLeft<10?'low':''}">${fmt(Math.max(0,j.timeLeft))}</span>`;
   else task=j.phase==='done'?'<b>Bundle delivered</b>':'<b>Out of time</b>';
+  if(car&&driving&&j.phase!=='run'&&car.position.x<DOWNTOWN.right){const km=(Math.hypot(car.position.x-CN_TOWER_POINT[0],car.position.z-CN_TOWER_POINT[1])/1000).toFixed(1);task=`<b>Tower Run</b> CN Tower ${km} km${this.tower.running?` <span class="rush-clock">${fmt(this.tower.time)}</span>`:''}${this.tower.best?` <span class="rush-score">best ${fmt(this.tower.best)}</span>`:''}`;}
   const banner=this.banner&&this.clock<this.banner.until?this.banner.text:'';
   const kmh=Math.round((car?.speed??0)*3.6),boost=Math.round(car?.boost??0),infinite=this.tuning.infiniteBoost;
   const supersonic=!!car&&car.speed>Math.min(this.tuning.boostSpeed*.88,60);
@@ -282,6 +308,7 @@ export class Rush implements SceneAddon{
    if(this.car&&this.jobs.phase==='meet')markers.push({kind:'meet',x:pip.x,z:pip.z});
    this.pads.forEach((p,i)=>{if(p.big&&this.padTimers[i]<=0)markers.push({kind:'boost',x:p.x,z:p.z});});
   }
+  if(this.downtown)markers.push({kind:'landmark',x:CN_TOWER_POINT[0],z:CN_TOWER_POINT[1]});
   markers.push({kind:'pip',x:pip.x,z:pip.z,heading:pip.heading});
   if(this.car){const c=this.render.p;markers.push({kind:'car',x:c.x,z:c.z,heading:this.car.heading});}
   const driving=this.driving()&&this.car;
@@ -292,7 +319,7 @@ export class Rush implements SceneAddon{
  diagnostics(){const c=this.car;return {character:this.character,driving:this.driving(),blocked:this.blocked(),keys:[...this.keys],input:this.input,mode:this.town.sceneMode,paused:this.town.paused,car:c?{...c.position,speed:c.speed,boost:c.boost,contacts:c.contacts,heading:c.heading}:null,jobs:{phase:this.jobs.phase,timeLeft:this.jobs.timeLeft,bundles:this.jobs.bundles,targets:this.jobs.targets.map(t=>({id:t.id,x:t.x,z:t.z,done:t.done}))},pip:this.town.pipState(),pads:this.pads.length,minimap:this.minimap?.large??null};}
  teleport(x:number,z:number){if(!this.car)return;this.car.reset(x,groundHeight(x,z)+.9,z,this.car.heading);this.snapshot();this.prev.p.copy(this.curr.p);}
  dispose(){
-  this.removeCar();this.clearPads();this.minimap?.dispose();this.hud.remove();this.group.removeFromParent();
+  this.removeCar();this.clearPads();this.downtown?.dispose();setExtraArea(undefined);this.minimap?.dispose();this.hud.remove();this.group.removeFromParent();
   window.removeEventListener('keydown',this.keyDown,{capture:true});window.removeEventListener('keyup',this.keyUp,{capture:true});window.removeEventListener('blur',this.blur);
   this.canvas?.removeEventListener('pointerdown',this.pointer);window.removeEventListener('pointerup',this.pointer);
  }
