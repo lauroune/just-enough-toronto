@@ -15,9 +15,14 @@ Your chunk id is in your task (e.g. `c-4_0`). Repository: the current working di
 3. `src/chunks/kit/index.ts`, then the kit files you use (`building.ts`, `street.ts`, `dressing.ts`).
 4. Any **designed neighbour** chunks (ids differing by 1 in either coordinate), so streets and style continue across the seam.
 
+## Context you can rely on
+- **Base layer:** every planned chunk already has `data.json` and is drawn by the base layer (`src/chunks/base.ts`): kit streets, plain massing and mapped trees. You're upgrading it. Your `index.ts` replaces the base layer for your cell.
+- **Road report:** `docs/chunks/ROADS.md` has the road agent's findings for your cell (stuck points, seams, character) and the route order. Read your cell's section.
+- **Terrain is real:** elevation comes from City contours (`src/data/terrain-region.json`). Use `kit.baseHeight` and the kit; never assume y = 0.
+
 ## Tasks, in order
 1. **Locate.** Run `npx tsx scripts/chunks/plan.ts | grep -E "ring|<id>"` to find your cell, its ring and its neighbours.
-2. **Fetch.** Run `npx tsx scripts/chunks/fetch-chunk.ts <id>`. It retries Overpass mirrors; if it still fails, wait a minute and rerun. Never invent data.
+2. **Data.** `src/chunks/areas/<id>/data.json` should already exist from the road agent. If it doesn't, run `npx tsx scripts/chunks/fetch-chunk.ts <id>`. It tries Overpass, then the OSM API. Never invent data.
 3. **Survey.** Read `data.json` with a short `python3` or `node` one-liner: street names and kinds, building kinds and heights, named buildings, places, parks, rails. Answer:
    - What is this place? Main street, residential, warehouses, towers, park, rail lands?
    - Which 1–3 buildings would a Torontonian recognise? These are your heroes.

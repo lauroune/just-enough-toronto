@@ -5,6 +5,8 @@ import {chunkPlan,parseCell,QUEEN,PLAN_ANCHORS,cellAt} from '../src/chunks/grid'
 import {StreetPhysics} from '../src/physics';
 import {RaceCar,NORMAL_TUNING,NO_INPUT,reserveGroundGroup,type CarSpec} from '../src/rush/race-car';
 import {clearSpot,setExtraArea} from '../src/rush/rush-logic';
+import {RegionGround} from '../src/rush/region-ground';
+import * as T from 'three';
 import type {ChunkData,ChunkModule} from '../src/chunks/types';
 await RAPIER.init();
 const spec:CarSpec={width:1.9,height:1.3,length:4.4,wheelRadius:.34,wheels:[{x:.8,y:-.05,z:1.35,front:true},{x:-.8,y:-.05,z:1.35,front:true},{x:.8,y:-.05,z:-1.35,front:false},{x:-.8,y:-.05,z:-1.35,front:false}]};
@@ -39,7 +41,7 @@ for(const id of areas){
  test(`chunk ${id}: the car parks clear and drives away`,()=>{
   const d=JSON.parse(readFileSync(`${dir}/${id}/data.json`,'utf8')) as ChunkData,c=parseCell(id);
   const physics=new StreetPhysics(d.buildings.map(b=>({x:0,z:0,w:0,d:0,h:b.h,p:b.p,holes:b.holes})),[],[]);reserveGroundGroup(physics.world,physics.ground);
-  physics.world.createCollider(RAPIER.ColliderDesc.cuboid(400,.5,400).setTranslation(c.center[0],-.53,c.center[1]));
+  new RegionGround(new T.Scene(),physics.world);
   setExtraArea({roads:d.roads.filter(r=>r.w>=6),buildings:d.buildings,bounds:c.bounds});
   try{
    const at=clearSpot(physics.world,physics.ground,c.center,0);assert.ok(at,'a clear street spot');

@@ -6,12 +6,14 @@ import {NODES} from '../game';
 import {RaceCar,NORMAL_TUNING,SUPERSONIC_TUNING,reserveGroundGroup,type CarInput,type CarTuning} from './race-car';
 import {loadCarModel,type CarModel} from './car-model';
 import {Minimap,type MapMarker} from './minimap';
+import {RegionGround} from './region-ground';
 import {Downtown,DOWNTOWN,DOWNTOWN_ROADS,DOWNTOWN_BUILDINGS,CN_TOWER_POINT} from './downtown';
 import {GRAPHICS} from '../render-quality';
 import {WAYPOINTS,ARRIVE,buildWaypointBeacons,waypointBounds,nearestWaypoint} from './waypoints';
-import {ChunkManager,DESIGNED} from '../chunks/manager';
+import {ChunkManager,AVAILABLE} from '../chunks/manager';
 import {parseCell} from '../chunks/grid';
 import mapIndex from '../chunks/map-index.json';
+import keyRoutes from '../chunks/routes.json';
 import type {Point} from '../game';
 import {strollPath,pathLength,pingPong,nearestAlong,clearSpot,layoutPads,setExtraArea,driveBounds,Jobs,type JobEvent,type Pad} from './rush-logic';
 import type {RushSettings} from './settings';
@@ -27,8 +29,8 @@ type Rect={left:number;right:number;top:number;bottom:number};
 const union=(rects:Rect[]):Rect=>({left:Math.min(...rects.map(r=>r.left)),right:Math.max(...rects.map(r=>r.right)),top:Math.min(...rects.map(r=>r.top)),bottom:Math.max(...rects.map(r=>r.bottom))});
 /** Streets and footprints of every fetched chunk (scripts/chunks/build-map.ts), for spawning and the map. */
 const CHUNK_ROADS=mapIndex.roads as unknown as {p:Point[];w:number}[],CHUNK_BUILDINGS=mapIndex.buildings as unknown as {p:Point[]}[];
-/** Where the car may drive: downtown plus every designed chunk. */
-const driveArea=()=>union([DOWNTOWN,...DESIGNED.map(id=>parseCell(id).bounds)]);
+/** Where the car may drive: downtown plus every chunk with map data (designed or base). */
+const driveArea=()=>union([DOWNTOWN,...AVAILABLE.map(id=>parseCell(id).bounds)]);
 /** The big map covers the drivable area and every key location, built or not yet. */
 const mapBounds=()=>union([driveArea(),waypointBounds()]);
 const BEST_KEY='enough-rush-tower-best';
@@ -52,7 +54,7 @@ export class Rush implements SceneAddon{
  private stroll=strollPath();private strollLength=pathLength(this.stroll);private strollAt=0;private approach?:Point;private offRoute=false;
  private input:CarInput={throttle:0,steer:0,roll:0,jump:false,boost:false,drift:false};
  private clock=0;private stuck=0;
- private downtown?:Downtown;private chunks?:ChunkManager;private waypoints?:T.Group;private arrivedAt?:string;
+ private downtown?:Downtown;private ground?:RegionGround;private chunks?:ChunkManager;private waypoints?:T.Group;private arrivedAt?:string;
  /** The Tower Run: from the edge of downtown to the foot of the CN Tower, timed. */
  private tower={running:false,time:0,best:readBest(),done:false};private mapClock=0;private reserved=false;
  constructor(private town:Neighbourhood,private host:HTMLElement,private chime:Chime){
@@ -72,6 +74,8 @@ export class Rush implements SceneAddon{
  apply(next:RushSettings){
   const prev=this.settings;this.settings=next;
   if(next.rush)this.reserveGroups();
+  if(next.rush&&!this.ground)this.ground=new RegionGround(this.town.threeScene,this.town.streetPhysics.world);
+  if(!next.rush&&this.ground){this.ground.dispose();this.ground=undefined;}
   if(next.rush&&!this.downtown){this.downtown=new Downtown(this.town.threeScene,this.town.streetPhysics.world);setExtraArea({roads:[...DOWNTOWN_ROADS,...CHUNK_ROADS],buildings:[...DOWNTOWN_BUILDINGS,...CHUNK_BUILDINGS],bounds:driveArea()});}
   if(!next.rush&&this.downtown){this.downtown.dispose();this.downtown=undefined;setExtraArea(undefined);}
   if(next.rush&&!this.chunks)this.chunks=new ChunkManager(this.town.threeScene,this.town.streetPhysics.world,{prepare:root=>this.town.prepareStreamed(root),suppress:(b,on)=>this.downtown?.suppress(b,on)});
@@ -272,7 +276,7 @@ export class Rush implements SceneAddon{
    this.trail?.update(back,side,supersonic&&dt>0&&!this.reduced);
   }
   else this.render.p.set(this.town.pipState().x,this.town.pipState().y,this.town.pipState().z);
-  const lod=GRAPHICS[this.town.getQuality()].lod,focus=this.driving()?this.render.p:this.town.pipState();this.downtown?.update(focus,lod);this.chunks?.update(focus,lod);
+  const lod=GRAPHICS[this.town.getQuality()].lod,focus=this.driving()?this.render.p:this.town.pipState();this.ground?.update(focus,lod);this.downtown?.update(focus,lod);this.chunks?.update(focus,lod);
   this.updatePads(this.clock);
   this.updateBeacons();
   this.updateHud();
@@ -336,13 +340,13 @@ export class Rush implements SceneAddon{
   if(this.car){const c=this.render.p;markers.push({kind:'car',x:c.x,z:c.z,heading:this.car.heading});}
   const driving=this.driving()&&this.car;
   const focus=driving?{x:this.render.p.x,z:this.render.p.z,heading:this.car!.heading,speed:this.car!.speed}:{x:pip.x,z:pip.z,heading:pip.heading,speed:pip.speed};
-  this.minimap!.draw({focus,markers,route:this.town.journeyPath()});
+  this.minimap!.draw({focus,markers,route:this.town.journeyPath(),paths:this.settings.rush?(keyRoutes as unknown as {p:Point[]}[]).map(r=>r.p):undefined});
  }
  /** For ?debug browser checks only. */
  diagnostics(){const c=this.car;return {chunks:this.chunks?.status,character:this.character,driving:this.driving(),blocked:this.blocked(),keys:[...this.keys],input:this.input,mode:this.town.sceneMode,paused:this.town.paused,car:c?{...c.position,speed:c.speed,boost:c.boost,contacts:c.contacts,heading:c.heading}:null,jobs:{phase:this.jobs.phase,timeLeft:this.jobs.timeLeft,bundles:this.jobs.bundles,targets:this.jobs.targets.map(t=>({id:t.id,x:t.x,z:t.z,done:t.done}))},pip:this.town.pipState(),pads:this.pads.length,minimap:this.minimap?.large??null};}
  teleport(x:number,z:number){if(!this.car)return;this.car.reset(x,groundHeight(x,z)+.9,z,this.car.heading);this.snapshot();this.prev.p.copy(this.curr.p);}
  dispose(){
-  this.removeCar();this.clearPads();this.chunks?.dispose();this.downtown?.dispose();setExtraArea(undefined);this.minimap?.dispose();this.hud.remove();this.group.removeFromParent();
+  this.removeCar();this.clearPads();this.chunks?.dispose();this.downtown?.dispose();this.ground?.dispose();setExtraArea(undefined);this.minimap?.dispose();this.hud.remove();this.group.removeFromParent();
   window.removeEventListener('keydown',this.keyDown,{capture:true});window.removeEventListener('keyup',this.keyUp,{capture:true});window.removeEventListener('blur',this.blur);
   this.canvas?.removeEventListener('pointerdown',this.pointer);window.removeEventListener('pointerup',this.pointer);
  }

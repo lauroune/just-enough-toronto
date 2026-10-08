@@ -17,7 +17,15 @@ if(!Number.isFinite(x)){
 const out=`evidence/chunks/${id}`;mkdirSync(out,{recursive:true});
 // Some Linux setups lack libasound for headless Chrome; a user-space copy can live in ~/.local/pwlibs.
 const libs=`${homedir()}/.local/pwlibs/root/usr/lib/x86_64-linux-gnu`;
-const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader'],env:existsSync(libs)?{...process.env,LD_LIBRARY_PATH:libs}:process.env});
+// On WSL with GPU passthrough (/dev/dxg) and WSLg, render on the NVIDIA GPU through Mesa's D3D12
+// driver. This needs a real (off-screen) window; headless Chrome falls back to software there.
+// CHUNK_GPU=0 forces software rendering.
+const wslGpu=process.env.CHUNK_GPU!=='0'&&existsSync('/dev/dxg')&&existsSync('/tmp/.X11-unix/X0');
+const env={...process.env,LD_LIBRARY_PATH:[existsSync(libs)&&libs,'/usr/lib/wsl/lib'].filter(Boolean).join(':')};
+const browser=await chromium.launch(wslGpu?{channel:'chromium',headless:false,
+  args:['--use-angle=gl','--ignore-gpu-blocklist','--ozone-platform=x11','--window-position=-2400,0','--window-size=960,600','--disable-backgrounding-occluded-windows','--disable-renderer-backgrounding','--disable-background-timer-throttling'],
+  env:{...env,GALLIUM_DRIVER:'d3d12',DISPLAY:':0',MESA_D3D12_DEFAULT_ADAPTER_NAME:process.env.CHUNK_GPU_NAME??'NVIDIA'}}
+ :{args:['--use-angle=swiftshader','--enable-unsafe-swiftshader'],env});
 const page=await browser.newPage({viewport:{width:960,height:600}});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text().slice(0,300));});
 await page.addInitScript(()=>localStorage.setItem('enough-rush-v1',JSON.stringify({rush:true,minimap:true})));
@@ -37,5 +45,6 @@ for(let k=0;k<4;k++){
 const stats=(await page.evaluate(id=>window.__ENOUGH__.rush().diagnostics().chunks?.stats?.[id],id))??null;
 const near=stats?{triangles:stats.triangles.tile+stats.triangles.detail,meshes:stats.meshes.tile+stats.meshes.detail}:null;
 const budget={nearTriangles:550000,nearMeshes:160,buildMs:4000},over=near?[near.triangles>budget.nearTriangles&&'triangles',near.meshes>budget.nearMeshes&&'meshes',stats.buildMs>budget.buildMs&&'build time'].filter(Boolean):['not loaded'];
-console.log(JSON.stringify({id,chunk:stats,near,budget,overBudget:over,viewpoint:{x:+x.toFixed(1),z:+z.toFixed(1),heading:+heading.toFixed(2)},screenshots:out,wholeScene:{drawCalls:worst.calls,triangles:worst.triangles},errors}));
+const renderer=await page.evaluate(()=>{const gl=document.createElement('canvas').getContext('webgl2'),e=gl?.getExtension('WEBGL_debug_renderer_info');return e?gl.getParameter(e.UNMASKED_RENDERER_WEBGL):'unknown';});
+console.log(JSON.stringify({id,renderer,chunk:stats,near,budget,overBudget:over,viewpoint:{x:+x.toFixed(1),z:+z.toFixed(1),heading:+heading.toFixed(2)},screenshots:out,wholeScene:{drawCalls:worst.calls,triangles:worst.triangles},errors}));
 await browser.close();

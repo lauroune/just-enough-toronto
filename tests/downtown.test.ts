@@ -5,6 +5,8 @@ import {GEO} from '../src/geography';
 import {RaceCar,NORMAL_TUNING,NO_INPUT,reserveGroundGroup,type CarSpec} from '../src/rush/race-car';
 import {addDowntownColliders,DOWNTOWN,DOWNTOWN_ROADS,DOWNTOWN_BUILDINGS,CN_TOWER_POINT} from '../src/rush/downtown';
 import {setExtraArea,clearSpot,driveBounds,layoutPads,inBuilding} from '../src/rush/rush-logic';
+import {RegionGround} from '../src/rush/region-ground';
+import * as T from 'three';
 await RAPIER.init();
 const spec:CarSpec={width:1.9,height:1.3,length:4.4,wheelRadius:.34,wheels:[{x:.8,y:-.05,z:1.35,front:true},{x:-.8,y:-.05,z:1.35,front:true},{x:.8,y:-.05,z:-1.35,front:false},{x:-.8,y:-.05,z:-1.35,front:false}]};
 
@@ -22,7 +24,7 @@ test('with downtown loaded the drive area, spawns and boost pads extend west',()
 });
 test('a car parked near the CN Tower can drive to its foot',()=>{
  const physics=new StreetPhysics(GEO.buildings.map(b=>({x:0,z:0,w:0,d:0,h:b.h,p:b.p,holes:b.holes})),[],[]);reserveGroundGroup(physics.world,physics.ground);
- addDowntownColliders(physics.world);setExtraArea({roads:DOWNTOWN_ROADS,buildings:DOWNTOWN_BUILDINGS,bounds:DOWNTOWN});
+ addDowntownColliders(physics.world);new RegionGround(new T.Scene(),physics.world);setExtraArea({roads:DOWNTOWN_ROADS,buildings:DOWNTOWN_BUILDINGS,bounds:DOWNTOWN});
  try{
   // Bremner Boulevard runs along the tower's south side, the same side of the rail corridor.
   const at=clearSpot(physics.world,physics.ground,[-3691.8,942.3],0)!;assert.ok(at,'clear street near the tower');
@@ -38,7 +40,7 @@ test('a car parked near the CN Tower can drive to its foot',()=>{
 });
 test('Queen Street runs on from the authored map into downtown without a wall at the seam',async()=>{
  const {queenZ}=await import('../src/geography');const {groundHeight}=await import('../src/terrain');
- const physics=new StreetPhysics(GEO.buildings.map(b=>({x:0,z:0,w:0,d:0,h:b.h,p:b.p,holes:b.holes})),[],[]);reserveGroundGroup(physics.world,physics.ground);addDowntownColliders(physics.world);
+ const physics=new StreetPhysics(GEO.buildings.map(b=>({x:0,z:0,w:0,d:0,h:b.h,p:b.p,holes:b.holes})),[],[]);reserveGroundGroup(physics.world,physics.ground);addDowntownColliders(physics.world);new RegionGround(new T.Scene(),physics.world);
  try{
   // Queen's centreline just east of River Street, heading west across the old map edge.
   const queen=DOWNTOWN_ROADS.filter(r=>r.n==='Queen Street East'||r.n==='Queen Street West').flatMap(r=>r.p);

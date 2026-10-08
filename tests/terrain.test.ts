@@ -15,7 +15,8 @@ test('Queen stays below the rail embankment with a continuous road approach',()=
  for(let x=-10;x<=90;x+=5){assert(Math.abs(groundHeight(x,-7)-groundHeight(x,8))<.01);assert(groundHeight(x,1)<.10);}
 });
 test('terrain sampling stays safe beyond the modeled area',()=>{
- assert.equal(groundHeight(20000,0),0);assert.equal(groundHeight(NaN,0),0);assert(Number.isFinite(groundGradient(20,-80).z));
+ // Far outside every grid: finite, and clamped to the regional terrain's edge (no cliffs, no NaN).
+ const far=groundHeight(20000,0);assert(Number.isFinite(far)&&Math.abs(far)<60);assert.equal(groundHeight(20000,0),groundHeight(30000,0));assert.equal(groundHeight(NaN,0),0);assert(Number.isFinite(groundGradient(20,-80).z));
 });
 await initPhysics();
 test('courier follows a raised northbound grade without a false floor collision',()=>{

@@ -3,7 +3,9 @@ import {BOUNDS} from '../motion';
 import type {Point} from '../game';
 
 export type MapMarker={kind:'pip'|'car'|'delivery'|'target'|'meet'|'boost'|'landmark'|'waypoint';x:number;z:number;heading?:number;label?:string;done?:boolean;color?:string};
-export type MapFrame={focus:{x:number;z:number;heading:number;speed:number};markers:MapMarker[];route?:Point[]};
+export type MapFrame={focus:{x:number;z:number;heading:number;speed:number};markers:MapMarker[];route?:Point[];
+ /** Routes between key locations (scripts/roads/routes.ts), drawn under everything else. */
+ paths?:Point[][]};
 
 /** Extra drivable area drawn beyond the authored map (Rush's downtown). */
 export type MapArea={bounds:typeof BOUNDS;roads:{p:Point[];w:number}[];buildings:{p:Point[]}[]};
@@ -62,6 +64,7 @@ export class Minimap{
   g.save();g.translate(w/2,h/2);g.rotate(rotation);g.scale(scale,scale);g.translate(-cx,-cz);
   g.imageSmoothingEnabled=true;g.drawImage(this.base,B.left,B.top,this.base.width/PX,this.base.height/PX);
   const px=1/scale*dpr; // one CSS pixel in world units
+  for(const path of f.paths??[]){if(path.length<2)continue;g.strokeStyle='#ffe1a8';g.globalAlpha=.75;g.lineWidth=5*px;g.lineCap='round';g.lineJoin='round';g.beginPath();path.forEach(([x,z],i)=>i?g.lineTo(x,z):g.moveTo(x,z));g.stroke();g.globalAlpha=1;}
   if(f.route&&f.route.length>1){g.strokeStyle=C.route;g.lineWidth=3*px;g.setLineDash([6*px,5*px]);g.beginPath();f.route.forEach(([x,z],i)=>i?g.lineTo(x,z):g.moveTo(x,z));g.stroke();g.setLineDash([]);}
   g.restore();
   // Markers are drawn upright in screen space so labels and arrows stay readable.

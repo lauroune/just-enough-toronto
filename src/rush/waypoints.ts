@@ -1,6 +1,7 @@
 import * as T from 'three';
 import raw from './data/waypoints.json';
 import {project} from '../geography';
+import {groundHeight} from '../terrain';
 import type {Point} from '../game';
 
 // Key locations: named places with a beam you can see across the city, a marker on
@@ -23,7 +24,7 @@ function label(text:string,sub:string,color:string){
 export function buildWaypointBeacons(){
  const group=new T.Group();group.name='Rush waypoints';
  for(const w of WAYPOINTS){
-  const g=new T.Group();g.position.set(w.x,0,w.z);g.userData.waypoint=w.id;
+  const g=new T.Group();g.position.set(w.x,groundHeight(w.x,w.z),w.z);g.userData.waypoint=w.id;
   const beam=new T.Mesh(new T.CylinderGeometry(2.2,2.2,240,24,1,true),new T.MeshBasicMaterial({color:w.color,transparent:true,opacity:.3,blending:T.AdditiveBlending,depthWrite:false,fog:false,side:T.DoubleSide}));beam.position.y=120;
   const ring=new T.Mesh(new T.RingGeometry(ARRIVE*.6,ARRIVE*.68,64),new T.MeshBasicMaterial({color:w.color,transparent:true,opacity:.75,depthWrite:false,side:T.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.12;
   const sign=new T.Sprite(new T.SpriteMaterial({map:label(w.name,w.address,w.color),depthWrite:false,fog:false,transparent:true}));sign.scale.set(48,15,1);sign.position.y=70;

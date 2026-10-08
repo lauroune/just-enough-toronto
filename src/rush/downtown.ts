@@ -4,10 +4,9 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import roofs from '../data/distant-city.json';
 // City roof outlines from the neighbourhood backdrop that lie west of the authored map (pre-extracted).
 import edge from './data/downtown-edge.json';
-import roads from './data/downtown-roads.json';
 import {CN_TOWER} from '../toronto-skyline';
 import {project} from '../geography';
-import {groundHeight,TERRAIN} from '../terrain';
+import {groundHeight} from '../terrain';
 import type {Point} from '../game';
 import type {LevelOfDetail} from '../render-quality';
 
@@ -20,8 +19,8 @@ import {DOWNTOWN} from './downtown-bounds';
 export {DOWNTOWN};
 export const CN_TOWER_POINT=project(CN_TOWER.longitude,CN_TOWER.latitude);
 export type Footprint={p:Point[];holes:Point[][];h:number};
-export type DowntownRoad={n:string;k:string;w:number;p:Point[]};
-export const DOWNTOWN_ROADS=roads as unknown as DowntownRoad[];
+import {DOWNTOWN_ROADS,type DowntownRoad} from './downtown-data';
+export {DOWNTOWN_ROADS,type DowntownRoad};
 /** Every footprint that becomes solid: the downtown roofs plus backdrop roofs west of the authored map. */
 export const DOWNTOWN_BUILDINGS:Footprint[]=[
  ...(roofs as unknown as Footprint[]),
@@ -29,8 +28,6 @@ export const DOWNTOWN_BUILDINGS:Footprint[]=[
 ];
 /** You are "downtown" west of this line; east of it, the original neighbourhood and its backdrop show. */
 const ENTER=-960,LEAVE=-940;
-/** The authored terrain ends here; downtown's flat ground starts exactly at its edge. */
-const EDGE=TERRAIN.left;
 /** Downtown tiles line up with the chunk grid (src/chunks/grid.ts), so a designed chunk replaces exactly one tile. */
 const TILE=400;
 
@@ -48,39 +45,37 @@ function splitExtrusion(geo:T.BufferGeometry):[T.BufferGeometry,T.BufferGeometry
  const caps=geo.groups.filter(g=>g.materialIndex===0),sides=geo.groups.filter(g=>g.materialIndex===1),join=(gs:typeof caps)=>mergeGeometries(gs.map(part),false)!;
  return [join(caps),join(sides)];
 }
+/** A footprint stands on its lowest corner, so nothing floats on a slope. */
+const baseOf=(p:Point[])=>Math.min(...p.map(([x,z])=>groundHeight(x,z)));
 const PALETTE=[0xb9b2a6,0xa9b6bd,0xc9b9a0,0xb38a74,0x9fb0b8,0xd5cbb8,0x8e9aa0];
 
 /**
- * Walls only, like the rest of the city: one trimesh for every downtown building, the CN Tower's
- * base, and a flat street-level ground. Walls give up the ground bit so phase mode passes them.
+ * Walls only, like the rest of the city: one trimesh for every downtown building and the CN Tower's
+ * base, each standing on the terrain. Walls give up the ground bit so phase mode passes them.
+ * (The ground itself is RegionGround.)
  */
 export function addDowntownColliders(world:RAPIER.World):RAPIER.Collider[]{
  const colliders:RAPIER.Collider[]=[];
   const v:number[]=[],idx:number[]=[];
   for(const b of DOWNTOWN_BUILDINGS)for(const ring of [b.p,...b.holes])for(let i=0;i<ring.length;i++){
-   const a=ring[i],c=ring[(i+1)%ring.length],n=v.length/3;v.push(a[0],-.5,a[1],a[0],b.h,a[1],c[0],b.h,c[1],c[0],-.5,c[1]);idx.push(n,n+1,n+2,n,n+2,n+3);
+   const a=ring[i],c=ring[(i+1)%ring.length],n=v.length/3,y=baseOf(b.p);v.push(a[0],y-.5,a[1],a[0],y+b.h,a[1],c[0],y+b.h,c[1],c[0],y-.5,c[1]);idx.push(n,n+1,n+2,n,n+2,n+3);
   }
   const walls=0xFFFE<<16|0xFFFF;
   colliders.push(world.createCollider(RAPIER.ColliderDesc.trimesh(new Float32Array(v),new Uint32Array(idx)).setFriction(.6).setCollisionGroups(walls)));
-  colliders.push(world.createCollider(RAPIER.ColliderDesc.cylinder(300,16).setTranslation(CN_TOWER_POINT[0],300,CN_TOWER_POINT[1]).setCollisionGroups(walls)));
-  const hx=(EDGE-DOWNTOWN.left)/2,hz=(DOWNTOWN.bottom-DOWNTOWN.top)/2;
-  colliders.push(world.createCollider(RAPIER.ColliderDesc.cuboid(hx,.5,hz).setTranslation(DOWNTOWN.left+hx,-.53,DOWNTOWN.top+hz).setFriction(.85)));
+  colliders.push(world.createCollider(RAPIER.ColliderDesc.cylinder(300,16).setTranslation(CN_TOWER_POINT[0],300+groundHeight(...CN_TOWER_POINT),CN_TOWER_POINT[1]).setCollisionGroups(walls)));
   return colliders;
 }
 
 export class Downtown{
  readonly group=new T.Group();
  private tiles:{mesh:T.Object3D;box:T.Box3}[]=[];
- private ground:T.Mesh;private colliders:RAPIER.Collider[]=[];private inside=false;private probe=new T.Vector3();
+ private colliders:RAPIER.Collider[]=[];private inside=false;private probe=new T.Vector3();
  private backdrop?:T.Object3D;private suppressed=new Set<T.Object3D>();
  /** Hide (or restore) the plain blocks inside a designed chunk's cell. */
  suppress(b:{left:number;right:number;top:number;bottom:number},on:boolean){for(const t of this.tiles){const [x,z]=t.mesh.userData.center as [number,number];if(x>b.left&&x<b.right&&z>b.top&&z<b.bottom){if(on)this.suppressed.add(t.mesh);else this.suppressed.delete(t.mesh);}}}
  constructor(scene:T.Scene,private world:RAPIER.World){
   this.group.name='Rush downtown';this.group.visible=false;scene.add(this.group);
   this.backdrop=scene.getObjectByName('City roof outlines · distant western background');
-  const w=EDGE-DOWNTOWN.left,d=DOWNTOWN.bottom-DOWNTOWN.top;
-  this.ground=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshStandardMaterial({color:0x9d988e,roughness:1}));
-  this.ground.rotation.x=-Math.PI/2;this.ground.position.set((DOWNTOWN.left+EDGE)/2,-.02,(DOWNTOWN.top+DOWNTOWN.bottom)/2);this.ground.receiveShadow=true;this.group.add(this.ground);
   this.buildTiles();this.colliders=addDowntownColliders(world);
  }
  private buildTiles(){
@@ -91,7 +86,7 @@ export class Downtown{
   const bucket=(x:number,z:number)=>{const key=`${Math.floor(x/TILE)}:${Math.floor(z/TILE)}`;let b=buckets.get(key);if(!b){b={roofs:[],walls:[],roads:[],x:Math.floor(x/TILE)*TILE+TILE/2,z:Math.floor(z/TILE)*TILE+TILE/2};buckets.set(key,b);}return b;};
   (roofs as unknown as Footprint[]).forEach((r,i)=>{
    const shape=new T.Shape(r.p.map(p=>new T.Vector2(p[0],-p[1])));for(const hole of r.holes)shape.holes.push(new T.Path(hole.map(p=>new T.Vector2(p[0],-p[1]))));
-   const geo=new T.ExtrudeGeometry(shape,{depth:r.h,bevelEnabled:false,curveSegments:1});geo.rotateX(-Math.PI/2);
+   const geo=new T.ExtrudeGeometry(shape,{depth:r.h,bevelEnabled:false,curveSegments:1});geo.rotateX(-Math.PI/2);geo.translate(0,baseOf(r.p),0);
    const colour=new T.Color(PALETTE[i%PALETTE.length]).multiplyScalar(r.h>60?.92:1),count=geo.getAttribute('position').count,colours=new Float32Array(count*3);
    for(let k=0;k<count;k++)colours.set([colour.r,colour.g,colour.b],k*3);geo.setAttribute('color',new T.BufferAttribute(colours,3));
    const c=r.p.reduce((s,p)=>[s[0]+p[0]/r.p.length,s[1]+p[1]/r.p.length],[0,0]),[top,sides]=splitExtrusion(geo);geo.dispose();const b=bucket(c[0],c[1]);b.roofs.push(top);b.walls.push(sides);
