@@ -113,6 +113,8 @@ export class Neighbourhood {
   }
   /** A map tile finished after start-up gets the same material styling and contact-shadow rules. */
   private tileReady(tile:THREE.Object3D){applyPastelMaterials(tile);this.contactOcclusion?.scan(tile);}
+  /** Content streamed in by an addon (Rush's chunks) gets the same styling and contact-shadow rules. */
+  prepareStreamed(root:THREE.Object3D){this.tileReady(root);}
   /** Finish every map tile around a point now, before the player can see it. */
   private streamAround(x:number,z:number){for(const t of this.world.streamTiles?.(x,z,{radius:STREAM_RADIUS})??[])this.tileReady(t);}
   private noContactShadow:THREE.Object3D[]=[];

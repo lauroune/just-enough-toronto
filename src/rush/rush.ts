@@ -2,12 +2,17 @@ import * as T from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import type {Neighbourhood,SceneAddon} from '../scene';
 import {groundHeight} from '../terrain';
-import {NODES,type Point} from '../game';
+import {NODES} from '../game';
 import {RaceCar,NORMAL_TUNING,SUPERSONIC_TUNING,reserveGroundGroup,type CarInput,type CarTuning} from './race-car';
 import {loadCarModel,type CarModel} from './car-model';
 import {Minimap,type MapMarker} from './minimap';
 import {Downtown,DOWNTOWN,DOWNTOWN_ROADS,DOWNTOWN_BUILDINGS,CN_TOWER_POINT} from './downtown';
 import {GRAPHICS} from '../render-quality';
+import {WAYPOINTS,ARRIVE,buildWaypointBeacons,waypointBounds,nearestWaypoint} from './waypoints';
+import {ChunkManager,DESIGNED} from '../chunks/manager';
+import {parseCell} from '../chunks/grid';
+import mapIndex from '../chunks/map-index.json';
+import type {Point} from '../game';
 import {strollPath,pathLength,pingPong,nearestAlong,clearSpot,layoutPads,setExtraArea,driveBounds,Jobs,type JobEvent,type Pad} from './rush-logic';
 import type {RushSettings} from './settings';
 
@@ -18,6 +23,14 @@ const CAR_KEYS=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','Arrow
 const STROLL_SPEED=1.25;
 /** Further than this from her route, Pip waits where she is rather than cut through buildings. */
 const STROLL_REACH=25;
+type Rect={left:number;right:number;top:number;bottom:number};
+const union=(rects:Rect[]):Rect=>({left:Math.min(...rects.map(r=>r.left)),right:Math.max(...rects.map(r=>r.right)),top:Math.min(...rects.map(r=>r.top)),bottom:Math.max(...rects.map(r=>r.bottom))});
+/** Streets and footprints of every fetched chunk (scripts/chunks/build-map.ts), for spawning and the map. */
+const CHUNK_ROADS=mapIndex.roads as unknown as {p:Point[];w:number}[],CHUNK_BUILDINGS=mapIndex.buildings as unknown as {p:Point[]}[];
+/** Where the car may drive: downtown plus every designed chunk. */
+const driveArea=()=>union([DOWNTOWN,...DESIGNED.map(id=>parseCell(id).bounds)]);
+/** The big map covers the drivable area and every key location, built or not yet. */
+const mapBounds=()=>union([driveArea(),waypointBounds()]);
 const BEST_KEY='enough-rush-tower-best';
 const readBest=()=>{try{const v=Number(localStorage.getItem(BEST_KEY));return v>0?v:undefined;}catch{return undefined;}};
 const writeBest=(v:number)=>{try{localStorage.setItem(BEST_KEY,String(v));}catch{/* Best time is kept for this visit only. */}};
@@ -39,7 +52,7 @@ export class Rush implements SceneAddon{
  private stroll=strollPath();private strollLength=pathLength(this.stroll);private strollAt=0;private approach?:Point;private offRoute=false;
  private input:CarInput={throttle:0,steer:0,roll:0,jump:false,boost:false,drift:false};
  private clock=0;private stuck=0;
- private downtown?:Downtown;
+ private downtown?:Downtown;private chunks?:ChunkManager;private waypoints?:T.Group;private arrivedAt?:string;
  /** The Tower Run: from the edge of downtown to the foot of the CN Tower, timed. */
  private tower={running:false,time:0,best:readBest(),done:false};private mapClock=0;private reserved=false;
  constructor(private town:Neighbourhood,private host:HTMLElement,private chime:Chime){
@@ -59,10 +72,14 @@ export class Rush implements SceneAddon{
  apply(next:RushSettings){
   const prev=this.settings;this.settings=next;
   if(next.rush)this.reserveGroups();
-  if(next.rush&&!this.downtown){this.downtown=new Downtown(this.town.threeScene,this.town.streetPhysics.world);setExtraArea({roads:DOWNTOWN_ROADS,buildings:DOWNTOWN_BUILDINGS,bounds:DOWNTOWN});}
+  if(next.rush&&!this.downtown){this.downtown=new Downtown(this.town.threeScene,this.town.streetPhysics.world);setExtraArea({roads:[...DOWNTOWN_ROADS,...CHUNK_ROADS],buildings:[...DOWNTOWN_BUILDINGS,...CHUNK_BUILDINGS],bounds:driveArea()});}
   if(!next.rush&&this.downtown){this.downtown.dispose();this.downtown=undefined;setExtraArea(undefined);}
+  if(next.rush&&!this.chunks)this.chunks=new ChunkManager(this.town.threeScene,this.town.streetPhysics.world,{prepare:root=>this.town.prepareStreamed(root),suppress:(b,on)=>this.downtown?.suppress(b,on)});
+  if(!next.rush&&this.chunks){this.chunks.dispose();this.chunks=undefined;}
+  if(next.rush&&!this.waypoints){this.waypoints=buildWaypointBeacons();this.group.add(this.waypoints);this.town.excludeFromContactShadows(this.waypoints);}
+  if(!next.rush&&this.waypoints){this.waypoints.removeFromParent();this.waypoints=undefined;}
   if(next.minimap&&!this.minimap)this.minimap=new Minimap(this.host);
-  this.minimap?.setArea(this.downtown?{bounds:DOWNTOWN,roads:DOWNTOWN_ROADS,buildings:DOWNTOWN_BUILDINGS}:undefined);
+  this.minimap?.setArea(this.downtown?{bounds:mapBounds(),roads:[...DOWNTOWN_ROADS,...CHUNK_ROADS],buildings:[...DOWNTOWN_BUILDINGS,...CHUNK_BUILDINGS]}:undefined);
   if(!next.minimap&&this.minimap){this.minimap.dispose();this.minimap=undefined;}
   if(next.rush&&(!this.car||prev?.car!==next.car))void this.spawnCar(next.car);
   if(!next.rush&&this.car)this.removeCar();
@@ -195,7 +212,12 @@ export class Rush implements SceneAddon{
   if(this.stuck>1.5){this.respawn();this.say('Back on the road.',1.5);}
   const B=driveBounds();
   if(p.y<groundHeight(p.x,p.z)-12||p.x<B.left-30||p.x>B.right+30||p.z<B.top-30||p.z>B.bottom+30)this.respawn();
-  if(this.driving())this.towerRun(dt,p);
+  if(this.driving()){this.towerRun(dt,p);this.arrival(p);}
+ }
+ private arrival(p:{x:number;z:number}){
+  const near=nearestWaypoint([p.x,p.z]);if(!near)return;
+  if(near.d<ARRIVE&&this.arrivedAt!==near.w.id){this.arrivedAt=near.w.id;this.say(`Arrived at ${near.w.name} · ${near.w.address}`,4);this.chime('success');}
+  else if(this.arrivedAt===near.w.id&&near.d>ARRIVE*2)this.arrivedAt=undefined;
  }
  private towerRun(dt:number,p:{x:number;z:number}){
   const t=this.tower,west=p.x<DOWNTOWN.right;
@@ -250,7 +272,7 @@ export class Rush implements SceneAddon{
    this.trail?.update(back,side,supersonic&&dt>0&&!this.reduced);
   }
   else this.render.p.set(this.town.pipState().x,this.town.pipState().y,this.town.pipState().z);
-  const lod=GRAPHICS[this.town.getQuality()].lod,focus=this.driving()?this.render.p:this.town.pipState();this.downtown?.update(focus,lod);
+  const lod=GRAPHICS[this.town.getQuality()].lod,focus=this.driving()?this.render.p:this.town.pipState();this.downtown?.update(focus,lod);this.chunks?.update(focus,lod);
   this.updatePads(this.clock);
   this.updateBeacons();
   this.updateHud();
@@ -309,6 +331,7 @@ export class Rush implements SceneAddon{
    this.pads.forEach((p,i)=>{if(p.big&&this.padTimers[i]<=0)markers.push({kind:'boost',x:p.x,z:p.z});});
   }
   if(this.downtown)markers.push({kind:'landmark',x:CN_TOWER_POINT[0],z:CN_TOWER_POINT[1]});
+  if(this.waypoints)for(const w of WAYPOINTS)markers.push({kind:'waypoint',x:w.x,z:w.z,label:w.name,color:w.color});
   markers.push({kind:'pip',x:pip.x,z:pip.z,heading:pip.heading});
   if(this.car){const c=this.render.p;markers.push({kind:'car',x:c.x,z:c.z,heading:this.car.heading});}
   const driving=this.driving()&&this.car;
@@ -316,10 +339,10 @@ export class Rush implements SceneAddon{
   this.minimap!.draw({focus,markers,route:this.town.journeyPath()});
  }
  /** For ?debug browser checks only. */
- diagnostics(){const c=this.car;return {character:this.character,driving:this.driving(),blocked:this.blocked(),keys:[...this.keys],input:this.input,mode:this.town.sceneMode,paused:this.town.paused,car:c?{...c.position,speed:c.speed,boost:c.boost,contacts:c.contacts,heading:c.heading}:null,jobs:{phase:this.jobs.phase,timeLeft:this.jobs.timeLeft,bundles:this.jobs.bundles,targets:this.jobs.targets.map(t=>({id:t.id,x:t.x,z:t.z,done:t.done}))},pip:this.town.pipState(),pads:this.pads.length,minimap:this.minimap?.large??null};}
+ diagnostics(){const c=this.car;return {chunks:this.chunks?.status,character:this.character,driving:this.driving(),blocked:this.blocked(),keys:[...this.keys],input:this.input,mode:this.town.sceneMode,paused:this.town.paused,car:c?{...c.position,speed:c.speed,boost:c.boost,contacts:c.contacts,heading:c.heading}:null,jobs:{phase:this.jobs.phase,timeLeft:this.jobs.timeLeft,bundles:this.jobs.bundles,targets:this.jobs.targets.map(t=>({id:t.id,x:t.x,z:t.z,done:t.done}))},pip:this.town.pipState(),pads:this.pads.length,minimap:this.minimap?.large??null};}
  teleport(x:number,z:number){if(!this.car)return;this.car.reset(x,groundHeight(x,z)+.9,z,this.car.heading);this.snapshot();this.prev.p.copy(this.curr.p);}
  dispose(){
-  this.removeCar();this.clearPads();this.downtown?.dispose();setExtraArea(undefined);this.minimap?.dispose();this.hud.remove();this.group.removeFromParent();
+  this.removeCar();this.clearPads();this.chunks?.dispose();this.downtown?.dispose();setExtraArea(undefined);this.minimap?.dispose();this.hud.remove();this.group.removeFromParent();
   window.removeEventListener('keydown',this.keyDown,{capture:true});window.removeEventListener('keyup',this.keyUp,{capture:true});window.removeEventListener('blur',this.blur);
   this.canvas?.removeEventListener('pointerdown',this.pointer);window.removeEventListener('pointerup',this.pointer);
  }

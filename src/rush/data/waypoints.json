@@ -1,0 +1,5 @@
+[
+ {"id":"ada","name":"Ada","address":"371 Front St W","lat":43.64289,"lon":-79.39219,"color":"#ff7a59","source":"Nominatim (OpenStreetMap) geocode of the street address, Oct 2026"},
+ {"id":"venn","name":"Venn","address":"500 Richmond St W","lat":43.6476444,"lon":-79.3988805,"color":"#8b7cff","source":"Nominatim (OpenStreetMap) geocode of the street address, Oct 2026"},
+ {"id":"next","name":"NEXT Canada","address":"175 Bloor St E","lat":43.670896,"lon":-79.3824632,"color":"#3fc8a8","source":"Nominatim (OpenStreetMap) geocode of the street address, Oct 2026"}
+]

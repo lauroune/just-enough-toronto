@@ -2,7 +2,7 @@ import {GEO,RENDER_BUILDINGS} from '../geography';
 import {BOUNDS} from '../motion';
 import type {Point} from '../game';
 
-export type MapMarker={kind:'pip'|'car'|'delivery'|'target'|'meet'|'boost'|'landmark';x:number;z:number;heading?:number;label?:string;done?:boolean};
+export type MapMarker={kind:'pip'|'car'|'delivery'|'target'|'meet'|'boost'|'landmark'|'waypoint';x:number;z:number;heading?:number;label?:string;done?:boolean;color?:string};
 export type MapFrame={focus:{x:number;z:number;heading:number;speed:number};markers:MapMarker[];route?:Point[]};
 
 /** Extra drivable area drawn beyond the authored map (Rush's downtown). */
@@ -39,7 +39,7 @@ export class Minimap{
  constructor(host:HTMLElement){
   this.el.className='minimap';this.el.setAttribute('role','img');this.el.setAttribute('aria-label','Map of Queen East. Press M to enlarge.');
   this.legend.className='minimap-legend';
-  this.legend.innerHTML=[['landmark','CN Tower'],['pip','Pip'],['car','You'],['delivery','Pip’s delivery'],['target','Urgent drop'],['meet','Meet Pip'],['boost','Big boost']].map(([k,l])=>`<li data-kind="${k}">${l}</li>`).join('');
+  this.legend.innerHTML=[['waypoint','Key location'],['landmark','CN Tower'],['pip','Pip'],['car','You'],['delivery','Pip’s delivery'],['target','Urgent drop'],['meet','Meet Pip'],['boost','Big boost']].map(([k,l])=>`<li data-kind="${k}">${l}</li>`).join('');
   this.el.append(this.canvas,this.legend);host.append(this.el);
  }
  private area?:MapArea;
@@ -66,7 +66,7 @@ export class Minimap{
   g.restore();
   // Markers are drawn upright in screen space so labels and arrows stay readable.
   const toScreen=(x:number,z:number):[number,number]=>{const dx=(x-cx)*scale,dz=(z-cz)*scale,c=Math.cos(rotation),s=Math.sin(rotation);return [w/2+dx*c-dz*s,h/2+dx*s+dz*c];};
-  const order:MapMarker['kind'][]=['boost','landmark','delivery','meet','target','pip','car'];
+  const order:MapMarker['kind'][]=['boost','landmark','waypoint','delivery','meet','target','pip','car'];
   for(const kind of order)for(const m of f.markers){
    if(m.kind!==kind||(m.kind==='boost'&&!this.large))continue;
    let [sx,sy]=toScreen(m.x,m.z);const edge=12*dpr;
@@ -82,7 +82,12 @@ export class Minimap{
    g.rotate(angle);g.fillStyle=C[m.kind];g.beginPath();
    if(m.kind==='car'){g.moveTo(0,-r*1.6);g.lineTo(r,r);g.lineTo(0,r*.45);g.lineTo(-r,r);}else{g.arc(0,0,r,0,Math.PI*2);g.moveTo(0,-r*1.7);g.lineTo(r*.6,-r*.7);g.lineTo(-r*.6,-r*.7);}
    g.closePath();g.fill();g.stroke();
-  }else if(m.kind==='landmark'){g.fillStyle=C.landmark;g.beginPath();g.moveTo(0,-r*2);g.lineTo(r*.75,r);g.lineTo(-r*.75,r);g.closePath();g.fill();g.stroke();g.beginPath();g.arc(0,-r*.6,r*.55,0,Math.PI*2);g.fill();g.stroke();}
+  }else if(m.kind==='waypoint'){
+   g.fillStyle=m.color??'#fff';g.beginPath();g.moveTo(0,-r*1.6);g.lineTo(r*1.6,0);g.lineTo(0,r*1.6);g.lineTo(-r*1.6,0);g.closePath();g.fill();g.stroke();
+   // Names on the big map, and on the corner map once a waypoint is in view.
+   if(m.label&&(this.large||!off)){g.font=`700 ${Math.round(r*2)}px DM Sans, sans-serif`;g.textBaseline='middle';g.lineWidth=3*dpr;g.strokeStyle='#183238';g.strokeText(m.label,r*2.2,0);g.fillStyle='#fff1d8';g.fillText(m.label,r*2.2,0);}
+  }
+  else if(m.kind==='landmark'){g.fillStyle=C.landmark;g.beginPath();g.moveTo(0,-r*2);g.lineTo(r*.75,r);g.lineTo(-r*.75,r);g.closePath();g.fill();g.stroke();g.beginPath();g.arc(0,-r*.6,r*.55,0,Math.PI*2);g.fill();g.stroke();}
   else if(m.kind==='boost'){g.fillStyle=C.boost;g.beginPath();g.arc(0,0,r*.45,0,Math.PI*2);g.fill();}
   else{
    const color=m.kind==='target'?C.target:m.kind==='meet'?C.car:C.delivery;

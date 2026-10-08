@@ -16,7 +16,8 @@ import type {LevelOfDetail} from '../render-quality';
 // backdrop; here the same footprints become lit, collidable buildings, on a
 // street grid from OpenStreetMap (ODbL). Built only when Rush is switched on.
 
-export const DOWNTOWN={left:-4110,right:-930,top:-1130,bottom:1450};
+import {DOWNTOWN} from './downtown-bounds';
+export {DOWNTOWN};
 export const CN_TOWER_POINT=project(CN_TOWER.longitude,CN_TOWER.latitude);
 export type Footprint={p:Point[];holes:Point[][];h:number};
 export type DowntownRoad={n:string;k:string;w:number;p:Point[]};
@@ -30,7 +31,8 @@ export const DOWNTOWN_BUILDINGS:Footprint[]=[
 const ENTER=-960,LEAVE=-940;
 /** The authored terrain ends here; downtown's flat ground starts exactly at its edge. */
 const EDGE=TERRAIN.left;
-const TILE=250;
+/** Downtown tiles line up with the chunk grid (src/chunks/grid.ts), so a designed chunk replaces exactly one tile. */
+const TILE=400;
 
 function windowTexture(){
  const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d')!;
@@ -70,7 +72,9 @@ export class Downtown{
  readonly group=new T.Group();
  private tiles:{mesh:T.Object3D;box:T.Box3}[]=[];
  private ground:T.Mesh;private colliders:RAPIER.Collider[]=[];private inside=false;private probe=new T.Vector3();
- private backdrop?:T.Object3D;
+ private backdrop?:T.Object3D;private suppressed=new Set<T.Object3D>();
+ /** Hide (or restore) the plain blocks inside a designed chunk's cell. */
+ suppress(b:{left:number;right:number;top:number;bottom:number},on:boolean){for(const t of this.tiles){const [x,z]=t.mesh.userData.center as [number,number];if(x>b.left&&x<b.right&&z>b.top&&z<b.bottom){if(on)this.suppressed.add(t.mesh);else this.suppressed.delete(t.mesh);}}}
  constructor(scene:T.Scene,private world:RAPIER.World){
   this.group.name='Rush downtown';this.group.visible=false;scene.add(this.group);
   this.backdrop=scene.getObjectByName('City roof outlines · distant western background');
@@ -113,7 +117,7 @@ export class Downtown{
   this.inside=this.inside?focus.x<LEAVE:focus.x<ENTER;
   this.group.visible=this.inside;if(this.backdrop)this.backdrop.visible=!this.inside;
   if(!this.inside)return;
-  for(const t of this.tiles){this.probe.set(focus.x,t.box.min.y,focus.z);t.mesh.visible=t.box.distanceToPoint(this.probe)<lod.fog;}
+  for(const t of this.tiles){this.probe.set(focus.x,t.box.min.y,focus.z);t.mesh.visible=!this.suppressed.has(t.mesh)&&t.box.distanceToPoint(this.probe)<lod.fog;}
  }
  get active(){return this.inside;}
  dispose(){
