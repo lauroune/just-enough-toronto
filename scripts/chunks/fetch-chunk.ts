@@ -92,6 +92,8 @@ export function writeChunk(id:string,osm:{elements:any[]}){
   const hh=levelsHeight(o.t)??{h:o.t.building==='house'||o.t.building==='detached'||o.t.building==='semidetached_house'?8:o.t.building==='garage'||o.t.building==='shed'?3:10,src:'default'};
   buildings.push({id:o.id,p:o.p,holes:[],h:r1(hh.h),heightSource:hh.src,...tagsFor(o.t)});
  }
+ // The CN Tower is Rush downtown's own landmark (src/rush/downtown.ts); a 553 m prism here would double it.
+ for(let i=buildings.length-1;i>=0;i--)if(buildings[i].h>=400)buildings.splice(i,1);
 
  const roads:ChunkRoad[]=[];const rails:{k:string;p:Point[]}[]=[];
  for(const el of osm.elements){
